@@ -1,5 +1,7 @@
 // Set up the 'Add-ons' button and exit
-addButton();
+if (window.location.href.includes('tripreport/')) {
+	addTripReportButton();
+}
 // That's all for now!
 
 function wait() {	// Wait until ReportList-checklists is in the DOM, then perform function
@@ -21,7 +23,7 @@ function wait() {	// Wait until ReportList-checklists is in the DOM, then perfor
 	}
 }
 
-function addButton() {	// Add our 'Add-ons' button
+function addTripReportButton() {	// Add our 'Add-ons' button
 	let containerDiv = document.querySelector('div.ReportMetaTools');
 
 	let myDiv = document.createElement('div');
@@ -122,7 +124,7 @@ function addButton() {	// Add our 'Add-ons' button
 
 function restoreButton() {
 	document.getElementById('KLFdiv').remove();	// Remove the button after click--this is the only way I can find to close the dropdown
-	addButton();	// Put a fresh button back
+	addTripReportButton();	// Put a fresh button back
 }
 
 function beOnChecklists() {

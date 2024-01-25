@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "eBird trip report utilities",
-  "version": "1.0",
+  "name": "eBird enhancements",
+  "version": "2.0",
   "content_scripts": [
     {
-      "matches": ["https://ebird.org/*tripreport/*"],
-      "js": ["tripreport.js"]
+      "matches": ["https://ebird.org/*checklist/*","https://ebird.org/*tripreport/*","https://ebird.org/*mychecklists*"],
+      "js": ["exportGPS.js","tripreport.js","hidden.js","shareLink.js","checklistButton.js"]
     }
   ],
   "browser_specific_settings": {
@@ -14,8 +14,8 @@
       "strict_min_version": "109.0"
     }
   },
-  "description": "Utilities for eBird trip reports.",
-  "homepage_url": "https://www.faintlake.com/eBird/extension/TripReport/",
+  "description": "eBird enhancements.",
+  "homepage_url": "https://www.faintlake.com/eBird/extension/Enhancements/",
   "icons": {
     "48": "icons/48.png",
     "96": "icons/96.png"
