@@ -30,7 +30,9 @@ if (document.getElementById("checklist-tools"))
 		document.getElementById("KLFmsgSpan").style='background-color:#F3F7FB;font-size:.75rem;display:block';
 		return false
 	}
-	if (localStorage.getItem('NoSharingURL'))
+
+	let options = JSON.parse(localStorage.getItem("extensionOptions"));
+	if (options.sharingURL == 'off')
 		shareSpan.style.display = 'none';
 	else
 		shareSpan.style.display = 'block';

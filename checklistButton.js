@@ -1,7 +1,9 @@
 if (document.getElementById("checklist-tools")) {
 	let h3 = document.getElementById('checklist-comments');
 	if (h3) {
-		console.log('Doing checklistButton');
+		if (!localStorage.getItem("extensionOptions")) {
+			localStorage.setItem('extensionOptions', JSON.stringify({ sharingURL: 'on', trackDownload: 'on' }));
+		}
 
 		let button = document.createElement('button');
 		button.setAttribute('class', 'Button');
@@ -14,28 +16,26 @@ if (document.getElementById("checklist-tools")) {
 		h3.parentNode.parentNode.append(button);
 
 		button.addEventListener('click', () => {
+			let options = JSON.parse(localStorage.getItem("extensionOptions"));
+
 			document.getElementById('Eoptions').style.display = 'block';
 
-			let NoSharingStatus = localStorage.getItem('NoSharingURL');
 			let shareButton = document.getElementById('ShareBId');
-			if (NoSharingStatus) {
+			if (options.sharingURL == 'off') {
 				shareButton.textContent = 'Enable Sharing URL';
 			} else {
 				shareButton.textContent = 'Disable Sharing URL';
 			}
 
-			let NoDownloadStatus = localStorage.getItem('NoTrackDownload');
 			let downloadButton = document.getElementById('TrackBId');
-			if (NoDownloadStatus) {
-				console.log('Download is disabled');
+			if (options.trackDownload == 'off') {
 				downloadButton.textContent = 'Enable Download track';
 			} else {
-				console.log('Download is enabled');
 				downloadButton.textContent = 'Disable Download track';
 			}
 
 			setTimeout(() => {
-				window.addEventListener('click', () => { document.getElementById('Eoptions').style.display = 'none'; }, { once: true });				
+				window.addEventListener('click', () => { document.getElementById('Eoptions').style.display = 'none'; }, { once: true });
 			}, 10);
 		});
 
@@ -77,8 +77,7 @@ if (document.getElementById("checklist-tools")) {
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.color = choicesColor });
 		/////////////////////////////////////////////////////////////
 		trackButton.addEventListener('click', () => { toggleItem('NoTrackDownload') });
-	
-	
+
 		let helpButton = document.createElement('li');
 		helpButton.append('Help');
 		/////////////////////////////////////////////////////////////
@@ -87,41 +86,39 @@ if (document.getElementById("checklist-tools")) {
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.backgroundColor = BackgroundColor });
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.color = choicesColor });
 		/////////////////////////////////////////////////////////////
+		helpButton.addEventListener('click', () => { location.href = 'https://www.faintlake.com/eBird/extension/Enhancements/' });
 
 		choices.append(shareButton, trackButton, helpButton);
 
 		optionDiv.append(choices);
-	} else {
-		console.log('No h3');
 	}
 }
 
 function toggleItem(item) {
-	let onoff;
-	if (localStorage.getItem(item)) 
-	{
-		localStorage.removeItem(item);
-		onoff = 'on';
-	} else {
-		localStorage.setItem(item, 1);
-		onoff = 'off';
-	}
+	let options = JSON.parse(localStorage.getItem("extensionOptions"));
 	if (item == 'NoTrackDownload') {
 		let downloadSpan = document.getElementById('downloadGPX');
-		if (downloadSpan) {
-			console.log('onoff is ' + onoff)
-			if (onoff == 'on')
-				downloadSpan.style.display = 'block';
-			else
-				downloadSpan.style.display = 'none';
+
+		if (options.trackDownload == 'off') {
+			options.trackDownload = 'on';
+			if (downloadSpan) downloadSpan.style.display = 'block';
+		} else {
+			options.trackDownload = 'off';
+			if (downloadSpan) downloadSpan.style.display = 'none';
 		}
+
 	} else if (item == 'NoSharingURL') {
 		let shareSpan = document.getElementById('KShareBtn');
 		if (shareSpan) {
-			if (onoff == 'on')
+			if (options.sharingURL == 'off') {
+				options.sharingURL = 'on';
 				shareSpan.style.display = 'block';
-			else
+			} else {
+				options.sharingURL = 'off';
 				shareSpan.style.display = 'none';
+			}
 		}
 	}
+
+	localStorage.setItem('extensionOptions', JSON.stringify(options));
 }

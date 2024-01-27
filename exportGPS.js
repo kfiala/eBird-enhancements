@@ -35,7 +35,9 @@ if (mapMini) {	// If the map is there
 				a.setAttribute("download", "eBird track " + subId + ".gpx");
 				a.href = window.URL.createObjectURL(new Blob([xmlOutput], { type: 'text/xml' }))
 			}
-			if (localStorage.getItem('NoTrackDownload'))
+
+			let options = JSON.parse(localStorage.getItem("extensionOptions"));
+			if (options.trackDownload == 'off')
 				downloadSpan.style.display = 'none';
 			else
 				downloadSpan.style.display = 'block';
