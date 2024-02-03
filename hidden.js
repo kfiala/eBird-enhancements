@@ -1,18 +1,18 @@
 if (window.location.href.includes('/mychecklists')) {
-	if (sessionStorage.getItem('doCountEm')) {
-		checkLocation();
-		countem();
-//		sessionStorage.removeItem('doCountEm');
+	if (sessionStorage.getItem('doCountEm') || sessionStorage.getItem('showAllHref')) {
+		if (checkURL())
+			countem();
 	} else {
 		addChecklistsButton();
 	}
 }
 
-function addChecklistsButton() {
+function addChecklistsButton() {	// Add our main menu button
 	let containerDiv = document.querySelector('div#toolbar');
 
 	let myDiv = document.createElement('div');
 	myDiv.setAttribute('class', 'Toolbar-group');
+	myDiv.setAttribute('id', 'myDivId');
 	containerDiv.append(myDiv);
 
 	let subDiv = document.createElement('div');
@@ -33,12 +33,6 @@ function addChecklistsButton() {
 	mySpan.setAttribute('id', 'KLFdiv');
 	myAnchor.append(mySpan);
 
-	let subSpan = document.createElement('span');
-	subSpan.setAttribute('class', 'u-hideForMedium');
-	subSpan.classList.add('is-visuallyHidden');
-	subSpan.append(document.createTextNode('Add-ons'));
-	myAnchor.append(subSpan);
-
 	let dropDiv = document.createElement('div');
 	dropDiv.setAttribute('id', 'addons-dropdown');
 	dropDiv.setAttribute('class', 'Toolbar-item-dropdown');
@@ -53,84 +47,136 @@ function addChecklistsButton() {
 	myH4.append('Add-ons');
 	dropDiv.append(myH4);
 
-	let item1 = document.createElement('div');
-	item1.setAttribute('class', 'GridFlex');
-	dropDiv.append(item1);
+	let itemObject1 = menuItem('Check for hidden checklists');
+	let itemObject2 = menuItem('Help');
+	let itemObject3 = menuItem('Cancel');
 
-	let p1 = document.createElement('p');
-	p1.append('Check for hidden checklists');
-	item1.append(p1);
+	dropDiv.append(itemObject1.item);
+	dropDiv.append(itemObject2.item);
+	dropDiv.append(itemObject3.item);
 
-	let item2 = document.createElement('div');
-	item2.setAttribute('class', 'GridFlex');
-	dropDiv.append(item2);
-
-	let p2 = document.createElement('p');
-	p2.append('Help');
-	item2.append(p2);
-	
-	p1.addEventListener('click', () => {
+	itemObject1.p.addEventListener('click', () => {
 		sessionStorage.setItem('doCountEm', 1);
 		location.reload();
 	});
-	p2.addEventListener('click', () => {
+
+	itemObject2.p.addEventListener('click', () => {
 		location.href = 'https://www.faintlake.com/eBird/extension/Enhancements/#E1';
+	});
+
+	itemObject3.p.addEventListener('click', () => {
+		myDiv.remove();
+		addChecklistsButton();
 	});
 }
 
-function checkLocation() {
+function menuItem(itemText) {
+	const boxBackgroundColor = '#edf4fe', itemBackgroundColor = '#113245';
+	let item = document.createElement('div');
+	item.setAttribute('class', 'GridFlex');
+	let p = document.createElement('p');
+	p.append(itemText);
+	item.append(p);
+	p.style.backgroundColor = boxBackgroundColor;
+	p.style.padding = '.5em';
+	p.addEventListener('mouseenter', () => { p.style.backgroundColor = itemBackgroundColor });
+	p.addEventListener('mouseenter', () => { p.style.color = 'white' });
+	p.addEventListener('mouseleave', () => { p.style.backgroundColor = boxBackgroundColor });
+	p.addEventListener('mouseleave', () => { p.style.color = 'black' });
+	return ({ item: item, p: p });
+}
+
+function checkURL() {
 	// Inexplicably, eBird sometimes redirects to the base URL with search parameters deleted.
 	// We deal with that here.
-	let hollowButtonList = document.querySelectorAll('a.Button--hollow');
-	let next;
+	let nextHref = '', prevHref = '';
+	let bottomButtonList = document.getElementById('prev-next-all');
+	if (!bottomButtonList) {
+		return (true);
+	}
+	bottomButtonList = bottomButtonList.querySelectorAll('a'); // Previous, Next, and Show
+	let showAllIndex = bottomButtonList.length - 1;	// Show all is last (Previous may be absent)
+
 	sessionStorage.removeItem('doCountEm');
-	for (let f = 0; f < hollowButtonList.length; f++) {
-		if (hollowButtonList[f].textContent.trim() == 'Next') {
-			next = hollowButtonList[f].href; 	// The "Next" button at the bottom
-			hollowButtonList[f].addEventListener('click', () => { sessionStorage.setItem('doCountEm',1) })
+
+	if (showAllIndex > 0) {
+		let nextButtonIndex = showAllIndex - 1;	// Next is next to last
+		nextHref = bottomButtonList[nextButtonIndex].href; 	// The "Next" button at the bottom
+		bottomButtonList[nextButtonIndex].addEventListener('click', () => {
+			sessionStorage.setItem('nextPage', nextHref);
+			sessionStorage.setItem('doCountEm', 1)
+		})
+
+		if (nextButtonIndex > 0) {
+			let prevButtonIndex = nextButtonIndex - 1;	// prev is before next, if present
+			prevHref = bottomButtonList[prevButtonIndex].href; 	// The "Previous" button at the bottom
+			bottomButtonList[prevButtonIndex].addEventListener('click', () => {
+				sessionStorage.setItem('nextPage', prevHref);
+				sessionStorage.setItem('doCountEm', 1)
+			})
 		}
 	}
 
-	let expectedPage = sessionStorage.getItem('nextPage');
+	let showAllHref = bottomButtonList[showAllIndex].href;	// Either Show all or Show fewer
+	bottomButtonList[showAllIndex].addEventListener('click', () => { sessionStorage.setItem('showAllHref', showAllHref) })
+
+	let expectedPage = sessionStorage.getItem('showAllHref');
 	if (expectedPage) {
-		reloadCounter = Number(sessionStorage.getItem('reloadCounter'));
-		console.log('Reload counter was ' + reloadCounter);
-		if (expectedPage != location.href && location.search == '') {
-			sessionStorage.setItem('reloadCounter', ++reloadCounter);
-			if (reloadCounter < 2) {
-				console.log('*********************************Need to reload*********************************************');
-				sessionStorage.setItem('doCountEm', 1);
-				location.replace(expectedPage);
-			}
-			else
-				console.log('Too many mis-loads');
-		} else if (expectedPage != location) {
-			console.log(expectedPage + ' is expected; got ' + location);
-		} else if (location.search == '') {
-			console.log('Did not get search parms');
+		sessionStorage.removeItem('showAllHref');
+	} else {
+		expectedPage = sessionStorage.getItem('nextPage');
+		if (expectedPage) {
+			sessionStorage.removeItem('nextPage');
 		} else {
-			console.log('Got expected page, zeroing reloadCounter');
 			sessionStorage.setItem('reloadCounter', 0);
 		}
 	}
-	sessionStorage.setItem('nextPage', next);
+
+	if (expectedPage) {
+		reloadCounter = Number(sessionStorage.getItem('reloadCounter'));
+		if (expectedPage != location.href && location.search == '') {
+			sessionStorage.setItem('reloadCounter', ++reloadCounter);
+			if (reloadCounter < 2) {
+				sessionStorage.setItem('doCountEm', 1);
+				location.replace(expectedPage);
+				return false;
+			}
+		} else {
+			sessionStorage.setItem('reloadCounter', 0);
+		}
+	}
+	return true;
 }
 
 function countem() {
-	let checklistID, href;
-	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li');
-	for (let li of listItems) {
-		if (li.getAttribute('id')) {
-			checklistID = li.getAttribute('id');
-			href = li.querySelector('a').getAttribute('href').trim();
-			li.querySelector('a').setAttribute('target', '_blank');
-			fetchHTML(href, checklistID);
-		}
-	}
+	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
+
+	if (!document.getElementById('myDivId'))
+		addChecklistsButton();
+
+	countOne(listItems, 0);
 	displayToggle();
 }
 
+function countOne(listItems, i) {
+	let checklistID, href;
+	let li = listItems[i];
+	if (li.getAttribute('id')) {
+		checklistID = li.getAttribute('id');
+		href = li.querySelector('a').getAttribute('href').trim();
+		li.querySelector('a').setAttribute('target', '_blank');
+		fetchHTML(href, checklistID);
+	}
+	if (i+1 < listItems.length) {
+		setTimeout(() => {
+			countOne(listItems, i+1);
+		}, 235);
+	}
+}
+
 function displayToggle() {
+	let bottomButtonList = document.getElementById('prev-next-all');
+	if (!bottomButtonList) return;
 	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li');
 	let myDiv = document.createElement('div');
 	myDiv.style.padding = '0.85em 1em';
@@ -142,7 +188,7 @@ function displayToggle() {
 	myDiv.style.color = 'white';
 	myDiv.style.backgroundColor = '#007bc2';
 	myDiv.style.verticalAlign = 'middle';
-	document.getElementById('prev-next-all').append(myDiv);
+	bottomButtonList.append(myDiv);
 	myDiv.append("Show only hidden");
 	myDiv.addEventListener('click', () => {
 		let text = myDiv.textContent;
@@ -182,6 +228,7 @@ async function fetchHTML(path, id) {
 
 		})
 		.catch(function (error) {
+			console.log('Error on ' + id);
 			console.log(error);
 		});
 }
