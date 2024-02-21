@@ -47,7 +47,7 @@ function addChecklistsButton() {	// Add our main menu button
 	myH4.append('Add-ons');
 	dropDiv.append(myH4);
 
-	let itemObject1 = menuItem('Check for hidden checklists');
+	let itemObject1 = menuItem('Check for flagged checklists');
 	let itemObject2 = menuItem('Help');
 	let itemObject3 = menuItem('Cancel');
 
@@ -189,15 +189,15 @@ function displayToggle() {
 	myDiv.style.backgroundColor = '#007bc2';
 	myDiv.style.verticalAlign = 'middle';
 	bottomButtonList.append(myDiv);
-	myDiv.append("Show only hidden");
+	myDiv.append("Show only flagged");
 	myDiv.addEventListener('click', () => {
 		let text = myDiv.textContent;
 		let all;
-		if (text == "Show only hidden") {
-			myDiv.textContent = "Show hidden/unhidden";
+		if (text == "Show only flagged") {
+			myDiv.textContent = "Show flagged/unflagged";
 			all = false;
 		} else {
-			myDiv.textContent = "Show only hidden";
+			myDiv.textContent = "Show only flagged";
 			all = true;
 		}
 		for (let li of listItems) {
