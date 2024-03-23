@@ -1,17 +1,19 @@
+const portalObject = {};
+
 if (window.location.href.includes('/mychecklists')) {
 	if (sessionStorage.getItem('doCountEm') || sessionStorage.getItem('showAllHref')) {
-		if (checkURL())
+		if (checkURL('doCountEm'))
 			countem();
-	} else if (sessionStorage.getItem('doMapEm')) { 
-		console.log('Found doMapEm set');
-		mapem();
-		sessionStorage.removeItem('doMapEm');
+	} else if (sessionStorage.getItem('doMapEm')) {
+		if (checkURL('doMapEm'))
+			runTheTracks();
 	} else {
 		addChecklistsButton();
 	}
 }
 
 function addChecklistsButton() {	// Add our main menu button
+	setPortals();
 	let containerDiv = document.querySelector('div#toolbar');
 
 	let myDiv = document.createElement('div');
@@ -97,7 +99,7 @@ function menuItem(itemText) {
 	return ({ item: item, p: p });
 }
 
-function checkURL() {
+function checkURL(storageItem) {
 	// Inexplicably, eBird sometimes redirects to the base URL with search parameters deleted.
 	// We deal with that here.
 	let nextHref = '', prevHref = '';
@@ -108,14 +110,14 @@ function checkURL() {
 	bottomButtonList = bottomButtonList.querySelectorAll('a'); // Previous, Next, and Show
 	let showAllIndex = bottomButtonList.length - 1;	// Show all is last (Previous may be absent)
 
-	sessionStorage.removeItem('doCountEm');
+	sessionStorage.removeItem(storageItem);
 
 	if (showAllIndex > 0) {
 		let nextButtonIndex = showAllIndex - 1;	// Next is next to last
 		nextHref = bottomButtonList[nextButtonIndex].href; 	// The "Next" button at the bottom
 		bottomButtonList[nextButtonIndex].addEventListener('click', () => {
 			sessionStorage.setItem('nextPage', nextHref);
-			sessionStorage.setItem('doCountEm', 1)
+			sessionStorage.setItem(storageItem, 1)
 		})
 
 		if (nextButtonIndex > 0) {
@@ -123,7 +125,7 @@ function checkURL() {
 			prevHref = bottomButtonList[prevButtonIndex].href; 	// The "Previous" button at the bottom
 			bottomButtonList[prevButtonIndex].addEventListener('click', () => {
 				sessionStorage.setItem('nextPage', prevHref);
-				sessionStorage.setItem('doCountEm', 1)
+				sessionStorage.setItem(storageItem, 1)
 			})
 		}
 	}
@@ -148,7 +150,7 @@ function checkURL() {
 		if (expectedPage != location.href && location.search == '') {
 			sessionStorage.setItem('reloadCounter', ++reloadCounter);
 			if (reloadCounter < 2) {
-				sessionStorage.setItem('doCountEm', 1);
+				sessionStorage.setItem(storageItem, 1);
 				location.replace(expectedPage);
 				return false;
 			}
@@ -166,7 +168,7 @@ function countem() {
 		addChecklistsButton();
 
 	countOne(listItems, 0);
-	displayToggle();
+	displayToggle('flag');
 }
 
 function countOne(listItems, i) {
@@ -175,7 +177,6 @@ function countOne(listItems, i) {
 	if (li.getAttribute('id')) {
 		checklistID = li.getAttribute('id');
 		href = li.querySelector('a').getAttribute('href').trim();
-//?		li.querySelector('a').setAttribute('target', '_blank');
 		fetchHTML(href, checklistID);
 	}
 	if (i+1 < listItems.length) {
@@ -185,7 +186,7 @@ function countOne(listItems, i) {
 	}
 }
 
-function displayToggle() {
+function displayToggle(type) {
 	let bottomButtonList = document.getElementById('prev-next-all');
 	if (!bottomButtonList) return;
 	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li');
@@ -200,22 +201,28 @@ function displayToggle() {
 	myDiv.style.backgroundColor = '#007bc2';
 	myDiv.style.verticalAlign = 'middle';
 	bottomButtonList.append(myDiv);
-	myDiv.append("Show only flagged");
+	let buttonText = [];
+	if (type == 'flag') {
+		buttonText = ["Show flagged/unflagged", "Show only flagged"];
+	} else if (type == 'tracks') {
+		buttonText = ["Show green or yellow", "Show only green"];		
+	}
+	myDiv.append(buttonText[1]);
 	myDiv.addEventListener('click', () => {
 		let text = myDiv.textContent;
 		let all;
-		if (text == "Show only flagged") {
-			myDiv.textContent = "Show flagged/unflagged";
-			all = false;
-		} else {
-			myDiv.textContent = "Show only flagged";
+		if (text == buttonText[0]) {
+			myDiv.textContent = buttonText[1];
 			all = true;
+		} else {
+			myDiv.textContent = buttonText[0];
+			all = false;
 		}
 		for (let li of listItems) {
 			if (all) {
 				li.style.display = 'grid';
 			} else {
-				if (!li.classList.contains('hiddenChecklist')) {
+				if (!li.classList.contains('alwaysShow')) {
 					li.style.display = 'none';
 				}
 			}
@@ -227,16 +234,34 @@ async function fetchHTML(path, id) {
 	let url = 'https://ebird.org' + path;
 	console.log('fetchHTML', url);
 	fetch(url, {redirect: "follow"})
-		.then((response) => {
-			return response.text();
-		})
+		.then(
+			(response) => { return response.text(); },	// success
+			(reason) => {										// failure
+				let portal = false;
+				let subid = url.split('/').slice(-1);
+				let details = document.getElementById('details-' + subid);
+				if (details) {
+					let portalDiv = details.querySelector('.ResultsStats-optionalDetails-portal');
+					if (portalDiv) {
+						portal = portalDiv.textContent.trim();
+					}
+				}
+				if (portal) {
+					url = 'https://ebird.org' + portalObject[portal] + path;
+					fetch(url)
+						.then(
+							(response) => { return response.text(); }
+						)
+						.then((data) => { checkIfFlagged(data, id); return (data); })
+					
+					
+				}
+			}
+		)
 		.then((data) => {
-			if (data.indexOf('>Checklist flagged</span>') > 0) {
-				document.getElementById(id).style.backgroundColor = 'yellow';
-				document.getElementById(id).classList.add('hiddenChecklist');
-			} else {
-				document.getElementById(id).style.backgroundColor = '#8f8';
-			}			
+			if (data) {
+				checkIfFlagged(data, id);
+			}
 
 		})
 		.catch(function (error) {
@@ -244,30 +269,36 @@ async function fetchHTML(path, id) {
 			console.log(error);
 		});
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function checkIfFlagged(data, id) {;
+	if (data.indexOf('>Checklist flagged</span>') > 0) {
+		document.getElementById(id).style.backgroundColor = 'yellow';
+		document.getElementById(id).classList.add('alwaysShow');
+	} else {
+		document.getElementById(id).style.backgroundColor = '#8f8';
+	}
+}
+
 let trackList = {};
 let subIdList = [];
 
-function mapem() {
+function runTheTracks() {
 	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
 	if (!document.getElementById('myDivId'))
 		addChecklistsButton();
 
-	mapOne(listItems, 0);
-	displayToggle();
+	getOneTrack(listItems, 0);
+	displayToggle('tracks');
 }
 
-function mapOne(listItems, i) {
+function getOneTrack(listItems, i) {
 	let li = listItems[i];
 	if (li.getAttribute('id')) {
-//?		li.querySelector('a').setAttribute('target', '_blank');
 		fetchGPS(li.querySelector('a').getAttribute('href').trim(), li.getAttribute('id'));
 	}
 	if (i + 1 < listItems.length) {
 		setTimeout(() => {
-			mapOne(listItems, i + 1);
+			getOneTrack(listItems, i + 1);
 		}, 235);
 	} else {	// At the end
 		downloadTracks(subIdList);
@@ -276,51 +307,67 @@ function mapOne(listItems, i) {
 
 async function fetchGPS(path, id) {
 	let url = 'https://ebird.org' + path;
-	console.log('Fetching', url);
 	fetch(url)
-	.then((response) => {
-		return response.text();
-	})
-	.then((data) => {
-		let subId = url.slice(url.lastIndexOf('/') + 1);
-		let checklistTitleA = data.match('<title>.*</title>');	// Get the html title
-		let checklistTitle = checklistTitleA[0].slice(7, -8);
-
-		// Find the checklist URL
-		let URLoffset = data.search('<link rel="canonical" href=".*">');
-		if (URLoffset) {
-			let URL = data[URLoffset + '<link rel="canonical" href="'.length];
-			URL = URL.split('"')[0];
-		}
-
-		if (data.search('<h3 id="flagged"') < 0) {	// Exclude flagged checklists
-			let offset = data.indexOf('data-maptrack-data');	// Look for the GPS data in the text
-			if (offset > 0) {	// If it's there, process it
-				let linend = data.indexOf('"', offset + 'data-maptrack-data="'.length + 2);
-				data = data.slice(offset + 'data-maptrack-data="'.length, linend);
-				storeTrack(subId, { points: data, title: checklistTitle, URL: URL });
-				document.getElementById(id).style.backgroundColor = '#8f8';
-			} else {
-				document.getElementById(id).style.backgroundColor = 'yellow';
-				document.getElementById(id).classList.add('noTrack');
+		.then(
+			(response) => { return response.text(); },	// success
+			() => {													// failure, try redirect to portal URL
+				let portal = false;
+				let subid = url.split('/').slice(-1);
+				let details = document.getElementById('details-' + subid);
+				if (details) {
+					let portalDiv = details.querySelector('.ResultsStats-optionalDetails-portal');
+					if (portalDiv) {
+						portal = portalDiv.textContent.trim();
+					}
+				}
+				if (portal) {
+					url = 'https://ebird.org' + portalObject[portal] + path;
+					fetch(url)
+						.then((response) => { return response.text(); })
+						.then((data) => { fetchTrackData(data, id, url) })
+				}
 			}
-		}
-	})
-	.catch(function (error) {
-		console.log('Error on ' + id);
-		console.log('URL', url);
-		console.log(error);
-	});
+		)
+		.then((data) => { if (data) fetchTrackData(data, id, url); })
+		.catch(function (error) {
+			console.log('Error on ' + url);
+			console.log(error);
+		});
 }
 
+function fetchTrackData(data, id, url) {
+	let subId = url.slice(url.lastIndexOf('/') + 1);
+	let checklistTitleA = data.match('<title>.*</title>');	// Get the html title
+	let checklistTitle = checklistTitleA[0].slice(7, -8);
+	let canonical = url;
+
+	// Find the checklist URL
+	let URLoffset = data.search('<link rel="canonical" href=".*">');
+	if (URLoffset) {
+		let canonical = data.slice(URLoffset + '<link rel="canonical" href="'.length);
+		canonical = canonical.split('"')[0];
+	}
+
+	if (data.search('<h3 id="flagged"') < 0) {	// Exclude flagged checklists
+		let offset = data.indexOf('data-maptrack-data');	// Look for the GPS data in the text
+		if (offset > 0) {	// If it's there, process it
+			let linend = data.indexOf('"', offset + 'data-maptrack-data="'.length + 2);
+			data = data.slice(offset + 'data-maptrack-data="'.length, linend);
+			storeTrack(subId, { points: data, title: checklistTitle, canonical: canonical });
+			document.getElementById(id).style.backgroundColor = '#8f8';
+			document.getElementById(id).classList.add('alwaysShow');
+		} else {
+			document.getElementById(id).style.backgroundColor = 'yellow';
+		}
+	}
+}
 function storeTrack(subId, checklistObject) {	// Take the string of coordinates and turn them into xml
 	let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
 	let trackPoint = [];	// Set up the array that we will put in the xml
 	for (let i = 0, c = 0; i < ar.length; i += 2, c++) {
 		trackPoint[c] = '<trkpt lon="' + ar[i] + '" lat="' + ar[i + 1] + '"></trkpt>';
 	}
-//	sessionStorage.setItem(subId, '<trk><name>' + subId + '</name><desc><![CDATA[' + checklistObject.URL + ' ' + checklistObject.title + ']]></desc><trkseg>' + trackPoint.reduce(joiner) + '</trkseg></trk>');
-	trackList[subId] = '<trk><name>' + subId + '</name><desc><![CDATA[' + checklistObject.URL + ' ' + checklistObject.title + ']]></desc><trkseg>' + trackPoint.reduce(joiner) + '</trkseg></trk>';
+	trackList[subId] = '<trk><name>' + subId + '</name><desc><![CDATA[' + checklistObject.canonical + ' ' + checklistObject.title + ']]></desc><trkseg>' + trackPoint.reduce(joiner) + '</trkseg></trk>';
 	subIdList.push(subId);
 
 	function joiner(complete, element) {
@@ -351,7 +398,6 @@ async function downloadTracks(subIdList) { // Wait for all the xml to be ready t
 		return;
 	}
 
-	console.log('Finishing');
 	// Set up a dummy anchor for downloading the xml file, then click it
 	const link = document.createElement('a')
 	link.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(XML))
@@ -370,4 +416,62 @@ async function downloadTracks(subIdList) { // Wait for all the xml to be ready t
 	function abort() {
 		console.log('No tracks');
 	}
+}
+
+function setPortals() {
+	portalObject["Alaska eBird"] = "/ak";
+	portalObject["Arkansas eBird"] = "/ar";
+	portalObject["aVerAves"] = "/averaves";
+	portalObject["BCN"] = "/bcn";
+	portalObject["eBird"] = "";
+	portalObject["eBird Argentina"] = "/argentina";
+	portalObject["eBird Armenia"] = "/armenia";
+	portalObject["eBird Australia"] = "/australia";
+	portalObject["eBird Bolivia"] = "/bolivia";
+	portalObject["eBird Brasil"] = "/brasil";
+	portalObject["eBird Canada"] = "/canada";
+	portalObject["eBird Caribbean"] = "/caribbean";
+	portalObject["eBird Central America"] = "/camerica";
+	portalObject["eBird Chile"] = "/chile";
+	portalObject["eBird Colombia"] = "/colombia";
+	portalObject["eBird España"] = "/spain";
+	portalObject["eBird India"] = "/india";
+	portalObject["eBird Japan"] = "/japan";
+	portalObject["eBird Malaysia"] = "/malaysia";
+	portalObject["eBird Pacific Northwest"] = "/pnw";
+	portalObject["eBird Paraguay"] = "/paraguay";
+	portalObject["eBird Peru"] = "/peru";
+	portalObject["eBird Portugal"] = "/portugal";
+	portalObject["eBird Québec"] = "/qc";
+	portalObject["eBird Rwanda"] = "/rwanda";
+	portalObject["eBird Singapore"] = "/singapore";
+	portalObject["eBird Taiwan"] = "/taiwan";
+	portalObject["eBird Uruguay"] = "/uruguay";
+	portalObject["eBird Zambia"] = "/zambia";
+	portalObject["eBird Zimbabwe"] = "/zimbabwe";
+	portalObject["eKusbank"] = "/turkey";
+	portalObject["Israel Breeding Bird Atlas"] = "/atlasilps";
+	portalObject["Maine Bird Atlas"] = "/me";
+	portalObject["Maine eBird"] = "/me";
+	portalObject["Maryland-DC Breeding Bird Atlas"] = "/atlasmddc";
+	portalObject["Mass Audubon eBird"] = "/massaudubon";
+	portalObject["Minnesota eBird"] = "/mn";
+	portalObject["Missouri eBird"] = "/mo";
+	portalObject["Montana eBird"] = "/mt";
+	portalObject["New Hampshire eBird"] = "/nh";
+	portalObject["New Jersey eBird"] = "/nj";
+	portalObject["New York Breeding Bird Atlas"] = "/atlasny";
+	portalObject["New Zealand Bird Atlas"] = "/atlasnz";
+	portalObject["New Zealand eBird"] = "/newzealand";
+	portalObject["North Carolina Bird Atlas"] = "/atlasnc";
+	portalObject["Pennsylvania Bird Atlas"] = "/atlaspa";
+	portalObject["Pennsylvania eBird"] = "/pa";
+	portalObject["PR eBird"] = "/pr";
+	portalObject["Taiwan Bird Atlas"] = "/atlastw";
+	portalObject["Texas eBird"] = "/tx";
+	portalObject["Vermont eBird"] = "/vt";
+	portalObject["Virginia Breeding Bird Atlas"] = "/atlasva";
+	portalObject["Virginia eBird"] = "/va";
+	portalObject["Wisconsin Breeding Bird Atlas"] = "/atlaswi";
+	portalObject["Wisconsin eBird"] = "/wi";
 }
