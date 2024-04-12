@@ -177,7 +177,7 @@ function countOne(listItems, i) {
 	if (li.getAttribute('id')) {
 		checklistID = li.getAttribute('id');
 		href = li.querySelector('a').getAttribute('href').trim();
-		fetchHTML(href, checklistID);
+		fetchPage(href, checklistID, checkIfFlagged);
 	}
 	if (i+1 < listItems.length) {
 		setTimeout(() => {
@@ -230,13 +230,13 @@ function displayToggle(type) {
 	});
 }
 
-async function fetchHTML(path, id) {
+async function fetchPage(path, id, callback) {
 	let url = 'https://ebird.org' + path;
-	console.log('fetchHTML', url);
+	console.log('fetchPage', url, 'with callback');
 	fetch(url, {redirect: "follow"})
 		.then(
 			(response) => { return response.text(); },	// success
-			(reason) => {										// failure
+			() => {	// failure
 				let portal = false;
 				let subid = url.split('/').slice(-1);
 				let details = document.getElementById('details-' + subid);
@@ -252,15 +252,13 @@ async function fetchHTML(path, id) {
 						.then(
 							(response) => { return response.text(); }
 						)
-						.then((data) => { checkIfFlagged(data, id); return (data); })
-					
-					
+						.then((data) => { callback(data, { id:id, url:url }); })
 				}
 			}
 		)
 		.then((data) => {
 			if (data) {
-				checkIfFlagged(data, id);
+				callback(data, { id: id, url: url });
 			}
 
 		})
@@ -270,7 +268,8 @@ async function fetchHTML(path, id) {
 		});
 }
 
-function checkIfFlagged(data, id) {;
+function checkIfFlagged(data, parms) {
+	let id = parms.id;
 	if (data.indexOf('>Checklist flagged</span>') > 0) {
 		document.getElementById(id).style.backgroundColor = 'yellow';
 		document.getElementById(id).classList.add('alwaysShow');
@@ -294,7 +293,7 @@ function runTheTracks() {
 function getOneTrack(listItems, i) {
 	let li = listItems[i];
 	if (li.getAttribute('id')) {
-		fetchGPS(li.querySelector('a').getAttribute('href').trim(), li.getAttribute('id'));
+		fetchPage(li.querySelector('a').getAttribute('href').trim(), li.getAttribute('id'), fetchTrackData);
 	}
 	if (i + 1 < listItems.length) {
 		setTimeout(() => {
@@ -305,37 +304,9 @@ function getOneTrack(listItems, i) {
 	}
 }
 
-async function fetchGPS(path, id) {
-	let url = 'https://ebird.org' + path;
-	fetch(url)
-		.then(
-			(response) => { return response.text(); },	// success
-			() => {													// failure, try redirect to portal URL
-				let portal = false;
-				let subid = url.split('/').slice(-1);
-				let details = document.getElementById('details-' + subid);
-				if (details) {
-					let portalDiv = details.querySelector('.ResultsStats-optionalDetails-portal');
-					if (portalDiv) {
-						portal = portalDiv.textContent.trim();
-					}
-				}
-				if (portal) {
-					url = 'https://ebird.org' + portalObject[portal] + path;
-					fetch(url)
-						.then((response) => { return response.text(); })
-						.then((data) => { fetchTrackData(data, id, url) })
-				}
-			}
-		)
-		.then((data) => { if (data) fetchTrackData(data, id, url); })
-		.catch(function (error) {
-			console.log('Error on ' + url);
-			console.log(error);
-		});
-}
-
-function fetchTrackData(data, id, url) {
+function fetchTrackData(data, parms) {
+	let id = parms.id;
+	let url = parms.url;
 	let subId = url.slice(url.lastIndexOf('/') + 1);
 	let checklistTitleA = data.match('<title>.*</title>');	// Get the html title
 	let checklistTitle = checklistTitleA[0].slice(7, -8);
