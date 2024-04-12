@@ -4,8 +4,8 @@
   "version": "2.1.0",
   "content_scripts": [
     {
-      "matches": ["https://ebird.org/*checklist/*","https://ebird.org/*tripreport/*","https://ebird.org/*mychecklists*"],
-      "js": ["exportGPS.js","tripreport.js","mychecklists.js","shareLink.js","checklistButton.js"]
+      "matches": ["https://demo.ebird.org/*checklist/*","https://demo.ebird.org/*tripreport/*","https://demo.ebird.org/*mychecklists*"],
+      "js": ["fetchPage.js","exportGPS.js","tripreport.js","mychecklists.js","shareLink.js","checklistButton.js"]
     }
   ],
   "description": "Enhancements for the eBird web interface",

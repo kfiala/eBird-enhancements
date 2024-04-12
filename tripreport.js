@@ -182,7 +182,7 @@ function getAllTracks() {
 	let returnValue;
 	for (let i = 0; i < checklists.length; i++) {	// Iterate through the checklist URLs
 		// Get the subId from the end of the URL
-		let URL = 'https://ebird.org' + checklists[i].getElementsByTagName('a')[0].getAttribute('href');
+		let URL = 'https://demo.ebird.org' + checklists[i].getElementsByTagName('a')[0].getAttribute('href');
 		let lastslash = URL.lastIndexOf('/');
 		let subId = URL.slice(lastslash + 1);
 		subIdList.push(subId);
