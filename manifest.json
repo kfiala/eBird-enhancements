@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "eBird enhancements",
-  "version": "2.1.0",
+  "version": "3.0",
   "content_scripts": [
     {
-      "matches": ["https://demo.ebird.org/*checklist/*","https://demo.ebird.org/*tripreport/*","https://demo.ebird.org/*mychecklists*"],
-      "js": ["fetchPage.js","exportGPS.js","tripreport.js","mychecklists.js","shareLink.js","checklistButton.js"]
+      "matches": ["https://ebird.org/*checklist/*","https://ebird.org/*tripreport/*","https://ebird.org/*mychecklists*"],
+      "js": ["commonFunctions.js","downloadTrack.js","tripreport.js","mychecklists.js","shareLink.js","checklistSettingsButton.js"]
     }
   ],
   "description": "Enhancements for the eBird web interface",

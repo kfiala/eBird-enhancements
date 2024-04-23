@@ -59,33 +59,26 @@ if (document.getElementById("checklist-tools")) {
 		let BackgroundColor = '#F0F6FA';
 		let shareButton = document.createElement('li');
 		shareButton.setAttribute('id', 'ShareBId');
-		/////////////////////////////////////////////////////////////
 		shareButton.addEventListener('mouseenter', () => { shareButton.style.backgroundColor = itemBackgroundColor });
 		shareButton.addEventListener('mouseenter', () => { shareButton.style.color = 'white' });
 		shareButton.addEventListener('mouseleave', () => { shareButton.style.backgroundColor = BackgroundColor });
 		shareButton.addEventListener('mouseleave', () => { shareButton.style.color = choicesColor });
-		/////////////////////////////////////////////////////////////
-
-		shareButton.addEventListener('click', () => { toggleItem('NoSharingURL') });
+		shareButton.addEventListener('click', () => { checklistSettingToggle('NoSharingURL') });
 
 		let trackButton = document.createElement('li');
 		trackButton.setAttribute('id', 'TrackBId');
-		/////////////////////////////////////////////////////////////
 		trackButton.addEventListener('mouseenter', () => { trackButton.style.backgroundColor = itemBackgroundColor });
 		trackButton.addEventListener('mouseenter', () => { trackButton.style.color = 'white' });
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.backgroundColor = BackgroundColor });
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.color = choicesColor });
-		/////////////////////////////////////////////////////////////
-		trackButton.addEventListener('click', () => { toggleItem('NoTrackDownload') });
+		trackButton.addEventListener('click', () => { checklistSettingToggle('NoTrackDownload') });
 
 		let helpButton = document.createElement('li');
 		helpButton.append('Help');
-		/////////////////////////////////////////////////////////////
 		helpButton.addEventListener('mouseenter', () => { helpButton.style.backgroundColor = itemBackgroundColor });
 		helpButton.addEventListener('mouseenter', () => { helpButton.style.color = 'white' });
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.backgroundColor = BackgroundColor });
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.color = choicesColor });
-		/////////////////////////////////////////////////////////////
 		helpButton.addEventListener('click', () => { location.href = 'https://www.faintlake.com/eBird/extension/Enhancements/' });
 
 		choices.append(shareButton, trackButton, helpButton);
@@ -94,7 +87,7 @@ if (document.getElementById("checklist-tools")) {
 	}
 }
 
-function toggleItem(item) {
+function checklistSettingToggle(item) {
 	let options = JSON.parse(localStorage.getItem("extensionOptions"));
 	if (item == 'NoTrackDownload') {
 		let downloadSpan = document.getElementById('downloadGPX');
