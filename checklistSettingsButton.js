@@ -1,16 +1,22 @@
 if (document.getElementById("checklist-tools")) {
+	checklistGridBug();
+
 	let h3 = document.getElementById('checklist-comments');
 	if (h3) {
 		if (!localStorage.getItem("extensionOptions")) {
 			localStorage.setItem('extensionOptions', JSON.stringify({ sharingURL: 'on', trackDownload: 'on' }));
 		}
 
+		let h3Parent = h3.parentNode; // Fix CLO bug; keep "Edit comments" displayed at all times.
+		let commentBtn = h3Parent.querySelector('a');
+		commentBtn.classList.remove('u-showForMedium');
+
 		let button = document.createElement('button');
 		button.setAttribute('class', 'Button');
 		button.classList.add('Button--tiny');
 		button.classList.add('Button--hollow');
 		button.classList.add('u-margin-none');
-		button.classList.add('u-showForMedium');
+//		button.classList.add('u-showForMedium');
 		button.style.padding = '.25rem .4rem';
 		button.append('Add-on settings');
 		h3.parentNode.parentNode.append(button);
@@ -114,4 +120,11 @@ function checklistSettingToggle(item) {
 	}
 
 	localStorage.setItem('extensionOptions', JSON.stringify(options));
+}
+
+function checklistGridBug() {
+	let divList = document.querySelectorAll('.Observation-tools');
+	for (let d of divList) {
+		d.style.gridColumn = "3/4";
+	}
 }
