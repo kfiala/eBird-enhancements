@@ -1,6 +1,8 @@
-if (document.getElementById("checklist-tools")) {
+if (document.getElementById("checklist-totals")) {	// It's a checklist
 	checklistGridBug();
+}
 
+if (document.getElementById("checklist-tools")) {	// It's a checklist that we own
 	let h3 = document.getElementById('checklist-comments');
 	if (h3) {
 		if (!localStorage.getItem("extensionOptions")) {
