@@ -1,22 +1,26 @@
-if (document.getElementById("checklist-tools")) {
+if (document.getElementById("checklist-totals")) {	// It's a checklist
+	checklistGridBug();
+}
+
+if (document.getElementById("checklist-tools")) {	// It's a checklist that we own
 	let h3 = document.getElementById('checklist-comments');
 	if (h3) {
-		if (!localStorage.getItem("extensionOptions")) {
-			localStorage.setItem('extensionOptions', JSON.stringify({ sharingURL: 'on', trackDownload: 'on' }));
-		}
+		let h3Parent = h3.parentNode; // Fix CLO bug; keep "Edit comments" displayed at all times.
+		let commentBtn = h3Parent.querySelector('a');
+		commentBtn.classList.remove('u-showForMedium');
 
 		let button = document.createElement('button');
 		button.setAttribute('class', 'Button');
 		button.classList.add('Button--tiny');
 		button.classList.add('Button--hollow');
 		button.classList.add('u-margin-none');
-		button.classList.add('u-showForMedium');
+//		button.classList.add('u-showForMedium');
 		button.style.padding = '.25rem .4rem';
 		button.append('Add-on settings');
 		h3.parentNode.parentNode.append(button);
 
 		button.addEventListener('click', () => {
-			let options = JSON.parse(localStorage.getItem("extensionOptions"));
+			let options = getOptions();
 
 			document.getElementById('Eoptions').style.display = 'block';
 
@@ -88,7 +92,7 @@ if (document.getElementById("checklist-tools")) {
 }
 
 function checklistSettingToggle(item) {
-	let options = JSON.parse(localStorage.getItem("extensionOptions"));
+	let options = getOptions();
 	if (item == 'NoTrackDownload') {
 		let downloadSpan = document.getElementById('downloadGPX');
 
@@ -114,4 +118,12 @@ function checklistSettingToggle(item) {
 	}
 
 	localStorage.setItem('extensionOptions', JSON.stringify(options));
+}
+
+function checklistGridBug() {
+	// Fix CLO's bug in grid layout
+	let divList = document.querySelectorAll('.Observation-tools');
+	for (let d of divList) {
+		d.style.gridColumn = "3/4";
+	}
 }
