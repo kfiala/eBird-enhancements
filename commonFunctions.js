@@ -1,3 +1,32 @@
+function getOptions() {
+	let options = JSON.parse(localStorage.getItem("extensionOptions"));
+	let changed = false;
+	if (options == null)
+		options = {};
+	if ('regionView' in options == false) {
+		options.regionView = 'Month';
+		changed = true;
+	}
+	if ('sharingURL' in options == false) {
+		options.sharingURL = 'on';
+		changed = true;
+	}
+	if ('trackDownload' in options == false) {
+		options.trackDownload = 'on';
+		changed = true;
+	}
+	if (changed) {
+		localStorage.setItem('extensionOptions', JSON.stringify(options));
+	}
+	return options;
+}
+
+function setOption(optionName, optionValue) {
+	let options = getOptions();
+	options[optionName] = optionValue;
+	localStorage.setItem('extensionOptions', JSON.stringify(options));
+}
+
 async function getOneTrack(checklists, i, promises) {
 	let promise;
 	if (i == 0) {

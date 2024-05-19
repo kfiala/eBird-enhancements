@@ -5,10 +5,6 @@ if (document.getElementById("checklist-totals")) {	// It's a checklist
 if (document.getElementById("checklist-tools")) {	// It's a checklist that we own
 	let h3 = document.getElementById('checklist-comments');
 	if (h3) {
-		if (!localStorage.getItem("extensionOptions")) {
-			localStorage.setItem('extensionOptions', JSON.stringify({ sharingURL: 'on', trackDownload: 'on' }));
-		}
-
 		let h3Parent = h3.parentNode; // Fix CLO bug; keep "Edit comments" displayed at all times.
 		let commentBtn = h3Parent.querySelector('a');
 		commentBtn.classList.remove('u-showForMedium');
@@ -24,7 +20,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		h3.parentNode.parentNode.append(button);
 
 		button.addEventListener('click', () => {
-			let options = JSON.parse(localStorage.getItem("extensionOptions"));
+			let options = getOptions();
 
 			document.getElementById('Eoptions').style.display = 'block';
 
@@ -96,7 +92,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 }
 
 function checklistSettingToggle(item) {
-	let options = JSON.parse(localStorage.getItem("extensionOptions"));
+	let options = getOptions();
 	if (item == 'NoTrackDownload') {
 		let downloadSpan = document.getElementById('downloadGPX');
 
@@ -125,6 +121,7 @@ function checklistSettingToggle(item) {
 }
 
 function checklistGridBug() {
+	// Fix CLO's bug in grid layout
 	let divList = document.querySelectorAll('.Observation-tools');
 	for (let d of divList) {
 		d.style.gridColumn = "3/4";
