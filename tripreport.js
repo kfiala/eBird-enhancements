@@ -45,11 +45,7 @@ function addTripReportButton() {	// Add our 'Add-ons' button
 	myButton.setAttribute('id', 'addon-button');
 	span1.appendChild(myButton);
 
-	let span2 = document.createElement('span');
-	span2.setAttribute('class', 'u-showForMedium');
-	let addonsText = document.createTextNode('Add-ons');
-	span2.appendChild(addonsText);
-	myButton.appendChild(span2);
+	myButton.append('Add-ons');
 
 	let menuDiv = document.createElement('div');
 	menuDiv.setAttribute('tabindex', '-1');
