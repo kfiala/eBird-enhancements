@@ -17,6 +17,7 @@ function getOptions() {
 	}
 	if (changed) {
 		localStorage.setItem('extensionOptions', JSON.stringify(options));
+		options = JSON.parse(localStorage.getItem("extensionOptions"));
 	}
 	return options;
 }
@@ -25,6 +26,7 @@ function setOption(optionName, optionValue) {
 	let options = getOptions();
 	options[optionName] = optionValue;
 	localStorage.setItem('extensionOptions', JSON.stringify(options));
+	options = JSON.parse(localStorage.getItem("extensionOptions"));
 }
 
 async function getOneTrack(checklists, i, promises) {
