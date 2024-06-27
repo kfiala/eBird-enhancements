@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "eBird enhancements",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "content_scripts": [
     {
-      "matches": ["https://ebird.org/*checklist/*","https://ebird.org/*tripreport/*","https://ebird.org/*mychecklists*","https://ebird.org/region/*","https://ebird.org/hotspot/*"],
-      "js": ["commonFunctions.js","downloadTrack.js","tripreport.js","mychecklists.js","shareLink.js","checklistSettingsButton.js","regionPage.js"]
+      "matches": [
+        "https://ebird.org/*",
+        "https://media.ebird.org/*"
+      ],
+      "js": ["autofocus.js","commonFunctions.js","downloadTrack.js","tripreport.js","mychecklists.js","shareLink.js","checklistSettingsButton.js","regionPage.js"]
     }
   ],
   "description": "Enhancements for the eBird web interface",
