@@ -131,5 +131,9 @@ function addRegionButton() {
 	option4.append('Recent Checklists');
 	select.append(option4);
 
+	setTimeout(appendMyDiv, 200, containerDiv, myDiv);
+}
+
+function appendMyDiv(containerDiv, myDiv) {
 	containerDiv.appendChild(myDiv);
 }
