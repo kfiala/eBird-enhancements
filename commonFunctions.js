@@ -1,4 +1,5 @@
 function getOptions() {
+	localStorage.length;
 	let options = JSON.parse(localStorage.getItem("extensionOptions"));
 	let changed = false;
 	if (options == null)
