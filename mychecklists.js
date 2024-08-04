@@ -183,6 +183,16 @@ function countOne(listItems, i) {
 	}
 }
 
+function runTheTracks() {
+	const listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
+	let promises = [];
+	if (!document.getElementById('myDivId'))
+		addChecklistsButton();
+
+	getOneTrack(listItems, 0, promises);
+	displayToggle('tracks');
+}
+
 function displayToggle(type) {
 	let bottomButtonList = document.getElementById('prev-next-all');
 	if (!bottomButtonList) return;
@@ -235,14 +245,4 @@ function checkIfFlagged(data, parms) {
 	} else {
 		document.getElementById(id).style.backgroundColor = '#8f8';
 	}
-}
-
-function runTheTracks() {
-	const listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
-	let promises = [];
-	if (!document.getElementById('myDivId'))
-		addChecklistsButton();
-
-	getOneTrack(listItems, 0, promises);
-	displayToggle('tracks');
 }
