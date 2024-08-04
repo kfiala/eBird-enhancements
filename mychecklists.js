@@ -1,10 +1,18 @@
 if (window.location.href.includes('/mychecklists')) {
-	if (sessionStorage.getItem('doCountEm') || sessionStorage.getItem('showAllHref')) {
+	let filterMode = '';
+	if (sessionStorage.getItem('showAllHref'))
+		filterMode = sessionStorage.getItem('filtermode');
+
+	if (sessionStorage.getItem('doCountEm') || filterMode == 'flagged') {
 		if (checkURL('doCountEm'))
 			countem();
-	} else if (sessionStorage.getItem('doMapEm')) {
+	} else if (sessionStorage.getItem('doMapEm') || filterMode == 'tracks') {
 		if (checkURL('doMapEm'))
 			runTheTracks();
+	} else if (sessionStorage.getItem('doIncomplete') || filterMode == 'incomplete') {
+		if (checkURL('doIncomplete')) {
+			scanIncomplete();
+		}
 	} else {
 		addChecklistsButton();
 	}
@@ -50,12 +58,14 @@ function addChecklistsButton() {	// Add our main menu button
 	myH4.append('Add-ons');
 	dropDiv.append(myH4);
 
-	let itemObject1 = menuItem('Check for flagged checklists');
+	let itemObject1 = menuItem('Check for flagged (hidden) checklists');
 	let itemObject2 = menuItem('Download all GPS tracks');
+	let itemObject3 = menuItem('Check for incomplete checklists');
 	let itemObjectH = menuItem('Help');
 	let itemObjectC = menuItem('Cancel');
 
 	dropDiv.append(itemObject1.item);
+	dropDiv.append(itemObject3.item);
 	dropDiv.append(itemObject2.item);
 	dropDiv.append(itemObjectH.item);
 	dropDiv.append(itemObjectC.item);
@@ -67,6 +77,11 @@ function addChecklistsButton() {	// Add our main menu button
 
 	itemObject2.p.addEventListener('click', () => {
 		sessionStorage.setItem('doMapEm', 1);
+		location.reload();
+	});
+
+	itemObject3.p.addEventListener('click', () => {
+		sessionStorage.setItem('doIncomplete', 1);
 		location.reload();
 	});
 
@@ -159,6 +174,7 @@ function checkURL(storageItem) {
 }
 
 function countem() {
+	sessionStorage.setItem('filtermode', 'flagged');
 	let listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
 
 	if (!document.getElementById('myDivId'))
@@ -182,6 +198,46 @@ function countOne(listItems, i) {
 		}, 235);
 	}
 }
+
+function runTheTracks() {
+	sessionStorage.setItem('filtermode', 'tracks');
+	const listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
+	let promises = [];
+	if (!document.getElementById('myDivId'))
+		addChecklistsButton();
+
+	getOneTrack(listItems, 0, promises);
+	displayToggle('tracks');
+}
+
+function scanIncomplete() {
+	sessionStorage.setItem('filtermode', 'incomplete');
+	const listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
+
+	if (!document.getElementById('myDivId'))
+		addChecklistsButton();
+
+	scan1incomplete(listItems, 0);
+	displayToggle('flag');
+}
+
+function scan1incomplete(listItems, i) {
+	let checklistID, href;
+	let li = listItems[i];
+	if (li.getAttribute('id')) {
+		checklistID = li.getAttribute('id');
+		href = li.querySelector('a').getAttribute('href').trim();
+		fetchPage(href, checklistID, checkIfIncomplete);
+	}
+	if (i + 1 < listItems.length) {
+		setTimeout(() => {
+			scan1incomplete(listItems, i + 1);
+		}, 235);
+	}
+}
+
+
+
 
 function displayToggle(type) {
 	let bottomButtonList = document.getElementById('prev-next-all');
@@ -237,12 +293,16 @@ function checkIfFlagged(data, parms) {
 	}
 }
 
-function runTheTracks() {
-	const listItems = document.getElementById('place-species-observed-results').querySelectorAll('li.ResultsStats');
-	let promises = [];
-	if (!document.getElementById('myDivId'))
-		addChecklistsButton();
-
-	getOneTrack(listItems, 0, promises);
-	displayToggle('tracks');
+function checkIfIncomplete(data, parms) {
+	let id = parms.id;
+	
+	if (data.indexOf('title="Protocol: Incidental">') > 0) {
+		document.getElementById(id).style.backgroundColor = '#89d0ff';
+		document.getElementById(id).classList.add('alwaysShow');
+	} else if (data.indexOf('<span class="Badge-label">Incomplete</span>') > 0) {
+		document.getElementById(id).style.backgroundColor = 'yellow';
+		document.getElementById(id).classList.add('alwaysShow');
+	} else {
+		document.getElementById(id).style.backgroundColor = '#8f8';
+	}
 }
