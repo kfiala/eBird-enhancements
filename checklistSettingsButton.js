@@ -22,7 +22,15 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		button.addEventListener('click', () => {
 			let options = getOptions();
 
-			document.getElementById('Eoptions').style.display = 'block';
+			if (document.getElementById('Eoptions').style.display == 'block') {
+				document.getElementById('Eoptions').style.display = 'none';
+			} else {
+				document.getElementById('Eoptions').style.display = 'block';
+
+				setTimeout(() => {
+					window.addEventListener('click', () => { document.getElementById('Eoptions').style.display = 'none'; }, { once: true });
+				}, 10);
+			}
 
 			let shareButton = document.getElementById('ShareBId');
 			if (options.sharingURL == 'off') {
@@ -37,12 +45,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 			} else {
 				downloadButton.textContent = 'Disable Download track';
 			}
-
-			setTimeout(() => {
-				window.addEventListener('click', () => { document.getElementById('Eoptions').style.display = 'none'; }, { once: true });
-			}, 10);
 		});
-
 		let optionDiv = document.createElement('div');
 		optionDiv.setAttribute('id', 'Eoptions');
 		optionDiv.style.border = 'thin solid blue';
