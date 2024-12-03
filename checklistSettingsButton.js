@@ -11,41 +11,28 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 
 		let button = document.createElement('button');
 		button.setAttribute('class', 'Button');
+		button.setAttribute('id', 'addon');
 		button.classList.add('Button--tiny');
 		button.classList.add('Button--hollow');
 		button.classList.add('u-margin-none');
-//		button.classList.add('u-showForMedium');
 		button.style.padding = '.25rem .4rem';
-		button.append('Add-on settings');
+		button.textContent = 'Add-on settings';
 		h3.parentNode.parentNode.append(button);
-
 		button.addEventListener('click', () => {
 			let options = getOptions();
 
 			if (document.getElementById('Eoptions').style.display == 'block') {
 				document.getElementById('Eoptions').style.display = 'none';
+				window.removeEventListener('click', hidePullDown, true);
 			} else {
 				document.getElementById('Eoptions').style.display = 'block';
-
-				setTimeout(() => {
-					window.addEventListener('click', () => { document.getElementById('Eoptions').style.display = 'none'; }, { once: true });
-				}, 10);
+				// click handler to close options window if click occurs outside it
+				window.addEventListener('click', hidePullDown, true);
 			}
-
-			let shareButton = document.getElementById('ShareBId');
-			if (options.sharingURL == 'off') {
-				shareButton.textContent = 'Enable Sharing URL';
-			} else {
-				shareButton.textContent = 'Disable Sharing URL';
-			}
-
-			let downloadButton = document.getElementById('TrackBId');
-			if (options.trackDownload == 'off') {
-				downloadButton.textContent = 'Enable Download track';
-			} else {
-				downloadButton.textContent = 'Disable Download track';
-			}
+			buttonTextContent('ShareBId', options.sharingURL);
+			buttonTextContent('TrackBId', options.trackDownload);
 		});
+
 		let optionDiv = document.createElement('div');
 		optionDiv.setAttribute('id', 'Eoptions');
 		optionDiv.style.border = 'thin solid blue';
@@ -70,7 +57,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		shareButton.addEventListener('mouseenter', () => { shareButton.style.color = 'white' });
 		shareButton.addEventListener('mouseleave', () => { shareButton.style.backgroundColor = BackgroundColor });
 		shareButton.addEventListener('mouseleave', () => { shareButton.style.color = choicesColor });
-		shareButton.addEventListener('click', () => { checklistSettingToggle('NoSharingURL') });
+		shareButton.addEventListener('click', () => { checklistSettingToggle('SharingURL') });
 
 		let trackButton = document.createElement('li');
 		trackButton.setAttribute('id', 'TrackBId');
@@ -78,7 +65,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		trackButton.addEventListener('mouseenter', () => { trackButton.style.color = 'white' });
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.backgroundColor = BackgroundColor });
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.color = choicesColor });
-		trackButton.addEventListener('click', () => { checklistSettingToggle('NoTrackDownload') });
+		trackButton.addEventListener('click', () => { checklistSettingToggle('TrackDownload') });
 
 		let helpButton = document.createElement('li');
 		helpButton.append('Help');
@@ -94,9 +81,17 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 	}
 }
 
+function hidePullDown(ev) {
+	if (!['ShareBId', 'TrackBId', 'addon'].includes(ev.target.id)) {
+		document.getElementById('Eoptions').style.display = 'none';
+		window.removeEventListener('click', hidePullDown, true);
+	}
+}
+
 function checklistSettingToggle(item) {
+	// handles click on option menu item
 	let options = getOptions();
-	if (item == 'NoTrackDownload') {
+	if (item == 'TrackDownload') {
 		let downloadSpan = document.getElementById('downloadGPX');
 
 		if (options.trackDownload == 'off') {
@@ -106,21 +101,43 @@ function checklistSettingToggle(item) {
 			options.trackDownload = 'off';
 			if (downloadSpan) downloadSpan.style.display = 'none';
 		}
+		buttonTextContent('TrackBId', options.trackDownload);
 
-	} else if (item == 'NoSharingURL') {
+	} else if (item == 'SharingURL') {
 		let shareSpan = document.getElementById('KShareBtn');
-		if (shareSpan) {
-			if (options.sharingURL == 'off') {
-				options.sharingURL = 'on';
-				shareSpan.style.display = 'block';
-			} else {
-				options.sharingURL = 'off';
-				shareSpan.style.display = 'none';
-			}
+
+		if (options.sharingURL == 'off') {
+			options.sharingURL = 'on';
+			shareSpan.style.display = 'block';
+		} else {
+			options.sharingURL = 'off';
+			shareSpan.style.display = 'none';
 		}
+		buttonTextContent('ShareBId', options.sharingURL);
 	}
 
 	localStorage.setItem('extensionOptions', JSON.stringify(options));
+}
+
+function buttonTextContent(button, onoff) {
+	// Set text on option menu item button
+	let optionButton = document.getElementById(button);
+	switch (button) {
+		case 'TrackBId':
+			if (onoff == 'on')
+				optionButton.textContent = 'Disable Download track';
+			else
+				optionButton.textContent = 'Enable Download track';
+			break;
+		case 'ShareBId':
+			if (onoff == 'on')
+				optionButton.textContent = 'Disable Sharing URL';
+			else
+				optionButton.textContent = 'Enable Sharing URL';
+			break;
+		default:
+	}
+	
 }
 
 function checklistGridBug() {
