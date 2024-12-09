@@ -67,6 +67,51 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		trackButton.addEventListener('mouseleave', () => { trackButton.style.color = choicesColor });
 		trackButton.addEventListener('click', () => { checklistSettingToggle('TrackDownload') });
 
+		let formatButton = document.createElement('li');
+		formatButton.setAttribute('id', 'FormatBId');
+		formatButton.addEventListener('mouseenter', () => { formatButton.style.backgroundColor = itemBackgroundColor });
+		formatButton.addEventListener('mouseenter', () => { formatButton.style.color = 'white' });
+		formatButton.addEventListener('mouseleave', () => { formatButton.style.backgroundColor = BackgroundColor });
+		formatButton.addEventListener('mouseleave', () => { formatButton.style.color = choicesColor });
+		formatButton.addEventListener('click', () => { checklistSettingToggle('downloadBar') });
+		formatButton.textContent = 'Download Format';
+
+		const checkedBallotBox = '\u2611';
+		const uncheckedBallotBox = '\u2610';
+		let options = getOptions();
+		gpxBox = options.trackFormat == 'GPX' ? checkedBallotBox : uncheckedBallotBox;
+		kmlBox = options.trackFormat == 'KML' ? checkedBallotBox : uncheckedBallotBox;
+
+		gpxChoice = document.createElement('span');
+		gpxChoice.style.marginLeft = '2em';
+		gpxChoice.textContent = gpxBox + ' GPX';
+		gpxChoice.setAttribute('id', 'GPXbtn');
+
+		kmlChoice = document.createElement('span');
+		kmlChoice.style.marginLeft = '2em';
+		kmlChoice.textContent = kmlBox + ' KML';
+		kmlChoice.setAttribute('id','KMLbtn');
+
+		gpxChoice.addEventListener('click', () => {
+			setOption('trackFormat', 'GPX');
+			gpxChoice.textContent = checkedBallotBox + ' GPX';
+			kmlChoice.textContent = uncheckedBallotBox + ' KML';
+		});
+
+
+		kmlChoice.addEventListener('click', () => {
+			setOption('trackFormat', 'KML');
+			kmlChoice.textContent = checkedBallotBox + ' KML';
+			gpxChoice.textContent = uncheckedBallotBox + ' GPX';
+		});
+
+		let downloadSettingBar = document.createElement('span');
+		downloadSettingBar.append(gpxChoice);
+		downloadSettingBar.append(kmlChoice);
+		downloadSettingBar.style.display = 'none';
+		downloadSettingBar.setAttribute('id', 'downloadBar');
+		formatButton.append(downloadSettingBar);
+
 		let helpButton = document.createElement('li');
 		helpButton.append('Help');
 		helpButton.addEventListener('mouseenter', () => { helpButton.style.backgroundColor = itemBackgroundColor });
@@ -75,15 +120,16 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.color = choicesColor });
 		helpButton.addEventListener('click', () => { location.href = 'https://www.faintlake.com/eBird/extension/Enhancements/' });
 
-		choices.append(shareButton, trackButton, helpButton);
+		choices.append(shareButton, trackButton, formatButton, downloadSettingBar, helpButton);
 
 		optionDiv.append(choices);
 	}
 }
 
 function hidePullDown(ev) {
-	if (!['ShareBId', 'TrackBId', 'addon'].includes(ev.target.id)) {
+	if (!['ShareBId', 'TrackBId', 'FormatBId', 'GPXbtn', 'KMLbtn', 'addon'].includes(ev.target.id)) {
 		document.getElementById('Eoptions').style.display = 'none';
+		document.getElementById('downloadBar').style.display = 'none';
 		window.removeEventListener('click', hidePullDown, true);
 	}
 }
@@ -114,6 +160,14 @@ function checklistSettingToggle(item) {
 			shareSpan.style.display = 'none';
 		}
 		buttonTextContent('ShareBId', options.sharingURL);
+
+	} else if (item == 'downloadBar') {
+		let optionSpan = document.getElementById('downloadBar');
+
+		if (optionSpan.style.display == 'block')
+			optionSpan.style.display = 'none';
+		else
+			optionSpan.style.display = 'block';
 	}
 
 	localStorage.setItem('extensionOptions', JSON.stringify(options));

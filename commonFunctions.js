@@ -1,4 +1,4 @@
-function getOptions() {
+ function getOptions() {
 	localStorage.length;
 	let options = JSON.parse(localStorage.getItem("extensionOptions"));
 	let changed = false;
@@ -14,6 +14,10 @@ function getOptions() {
 	}
 	if ('trackDownload' in options == false) {
 		options.trackDownload = 'on';
+		changed = true;
+	}
+	if ('trackFormat' in options == false) {
+		options.trackFormat = 'GPX';
 		changed = true;
 	}
 	if (changed) {
@@ -116,6 +120,7 @@ function fetchTrackData(data, parms) {
 }
 
 function storeTrack(subId, checklistObject) {	// Take the string of coordinates and turn them into xml
+	console.log('In storeTrack', subId, checklistObject);
 	let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
 	let trackPoint = [];	// Set up the array that we will put in the xml
 	for (let i = 0, c = 0; i < ar.length; i += 2, c++) {
