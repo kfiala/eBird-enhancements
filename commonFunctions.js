@@ -35,7 +35,6 @@ function setOption(optionName, optionValue) {
 }
 
 async function getOneTrack(checklists, i, promises) {
-	let promise;
 	if (i == 0) {
 		sessionStorage.removeItem('subIdList');
 	}
@@ -58,20 +57,6 @@ async function getOneTrack(checklists, i, promises) {
 		if (XML) {
 			performDownload(XML);
 		}
-	}
-}
-
-async function getOnlyTrack(URL) {
-	sessionStorage.removeItem('subIdList');
-	await fetchPage(URL, 0, fetchTrackData);
-	let subId = URL.slice(URL.lastIndexOf('/') + 1);
-	finishTheXML(subId);
-}
-
-async function finishTheXML(subId) {
-	let XML = prepareXML()
-	if (XML) {
-		downloadButton(XML,subId);
 	}
 }
 
@@ -120,7 +105,6 @@ function fetchTrackData(data, parms) {
 }
 
 function storeTrack(subId, checklistObject) {	// Take the string of coordinates and turn them into xml
-	console.log('In storeTrack', subId, checklistObject);
 	let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
 	let trackPoint = [];	// Set up the array that we will put in the xml
 	for (let i = 0, c = 0; i < ar.length; i += 2, c++) {
@@ -204,32 +188,6 @@ function performDownload(XML) {
 	link.click()
 	document.body.removeChild(link);
 }
-
-function downloadButton(XML,subId) {
-	let downloadSpan = document.createElement('span'); 
-	downloadSpan.setAttribute('id', 'downloadGPX');
-	downloadSpan.style = 'margin:0 0 0 70px;padding:0 8px;border:thin blue solid;background-color:#F0F6FA;font-size:.75rem;width:9em';
-
-	let h3 = document.querySelector("#tracks");
-	let section = h3.parentNode;
-	section.insertAdjacentElement("beforeend", downloadSpan);
-
-	// Set up the link (anchor element)
-	let a = document.createElement('a');
-	let linkText = document.createTextNode("Download track");
-	a.appendChild(linkText);
-	downloadSpan.appendChild(a);
-	a.setAttribute("download", "eBird track " + subId + ".gpx");
-	a.setAttribute('id', 'downloadAnchor');
-	a.href = "data:text/plain," + XML;
-
-	let options = JSON.parse(localStorage.getItem("extensionOptions"));
-	if (options.trackDownload == 'off')
-		downloadSpan.style.display = 'none';
-	else
-		downloadSpan.style.display = 'block';
-}
-
 
 function noTracksFound(current) {
 	if (typeof current == 'undefined') {
