@@ -2,16 +2,16 @@ if (document.getElementById("tracks-map-mini")) {	// If the small map display pr
 	if (document.querySelector("#tracks-map-mini")) {	// If the track data is there
 
 		let downloadSpan = document.createElement('span');
-		downloadSpan.setAttribute('id', 'downloadGPX');
 		downloadSpan.style = 'margin:0 0 0 70px;padding:0 8px;border:thin blue solid;background-color:#F0F6FA;font-size:.75rem;width:9em';
-		downloadSpan.setAttribute('id', 'downloadAnchor');
+		downloadSpan.setAttribute('id', 'downloadAction');
 		downloadSpan.textContent = 'Download track';
+		downloadSpan.style.cursor = 'pointer';
 
 		let h3 = document.querySelector("#tracks");
 		let section = h3.parentNode;
 		section.insertAdjacentElement("beforeend", downloadSpan);
 
-		document.getElementById('downloadAnchor').addEventListener('click', (ev) => {
+		document.getElementById('downloadAction').addEventListener('click', (ev) => {
 			ev.preventDefault();
 			getOnlyTrack(location.pathname);
 		});
@@ -30,8 +30,5 @@ async function getOnlyTrack(path) {
 	promises.push(fetchPage(path, 0, fetchTrackData));
 
 	await Promise.allSettled(promises);
-	let XML = prepareXML();
-	if (XML) {
-		performDownload(XML);
-	}
+	handleDownload();
 }

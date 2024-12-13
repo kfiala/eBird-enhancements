@@ -1,4 +1,4 @@
- function getOptions() {
+function getOptions() {
 	localStorage.length;
 	let options = JSON.parse(localStorage.getItem("extensionOptions"));
 	let changed = false;
@@ -17,7 +17,7 @@
 		changed = true;
 	}
 	if ('trackFormat' in options == false) {
-		options.trackFormat = 'GPX';
+		options.trackFormat = 'KML';
 		changed = true;
 	}
 	if (changed) {
@@ -53,10 +53,7 @@ async function getOneTrack(checklists, i, promises) {
 		}, 235);
 	} else {	// At the end
 		await Promise.allSettled(promises);
-		let XML = prepareXML();
-		if (XML) {
-			performDownload(XML);
-		}
+		handleDownload();
 	}
 }
 
@@ -104,34 +101,16 @@ function fetchTrackData(data, parms) {
 	} else { document.getElementById(id).style.backgroundColor = 'yellow'; }
 }
 
-function storeTrack(subId, checklistObject) {	// Take the string of coordinates and turn them into xml
-	let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
-	let trackPoint = [];	// Set up the array that we will put in the xml
-	for (let i = 0, c = 0; i < ar.length; i += 2, c++) {
-		trackPoint[c] = '<trkpt lon="' + ar[i] + '" lat="' + ar[i + 1] + '"></trkpt>';
-	}
-	
-
+function storeTrack(subId, checklistObject) {
 	let subIdList = sessionStorage.getItem('subIdList');
-	if (subIdList == null) subIdList = '';
-	
-	subIdList += ',' + subId;
+	if (subIdList == null) subIdList = subId;
+	else subIdList += ',' + subId;
+
 	sessionStorage.setItem('subIdList', subIdList);
-	
-	let metadata = '<name>' + subId + '</name><desc><![CDATA[' + checklistObject.canonical + ' ' + checklistObject.title + ']]></desc>' 
-	if (checklistObject.time) {
-		metadata += '<time>' + checklistObject.time + '</time>'
-	}
-
-	sessionStorage.setItem(subId,
-		'<trk>' + metadata + '<trkseg>' + trackPoint.reduce(joiner) + '</trkseg></trk>');
-
-	function joiner(complete, element) {
-		return complete + element;
-	}
+	sessionStorage.setItem(subId, JSON.stringify(checklistObject));
 }
 
-function prepareXML() {
+function prepareGPX() {
 	let List = sessionStorage.getItem('subIdList');
 	if (!List) {	// If no tracks found
 		// If a shared trip report, see who the current user is.
@@ -145,12 +124,10 @@ function prepareXML() {
 		return false;
 	}
 
-	List = List.slice(1); // Skip leading comma
 	subIdList = List.split(',');
 
 	sessionStorage.removeItem('subIdList');
 
-	let total = 0;
 	let XML = '<?xml version="1.0" encoding="UTF-8" ?><gpx version="1.1" creator="eBird"><metadata>'
 		+ '<name><![CDATA[' + document.title + ']]></name>';
 	let sourceURL = document.querySelector('link[rel="canonical"]');
@@ -163,27 +140,125 @@ function prepareXML() {
 	}
 	XML += '<desc><![CDATA[' + document.title + ']]></desc>'
 		+ '</metadata>';
-	let subId, track;
+	let subId;
 	for (let i = 0; i < subIdList.length; i++) {
 		subId = subIdList[i];
-		track = sessionStorage.getItem(subId);
+		
+		let checklistObject = JSON.parse(sessionStorage.getItem(subId));
 		sessionStorage.removeItem(subId);
-		if (track) {
-			XML += track;
-			total += track.length;
+
+		let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
+		let trackPoint = [];	// Set up the array that we will put in the xml
+		for (let i = 0, c = 0; i < ar.length; i += 2, c++) {
+			trackPoint[c] = '<trkpt lon="' + ar[i] + '" lat="' + ar[i + 1] + '"></trkpt>';
 		}
+		let metadata = '<name>' + subId + '</name><desc><![CDATA[' + checklistObject.canonical + ' ' + checklistObject.title + ']]></desc>'
+		if (checklistObject.time) {
+			metadata += '<time>' + checklistObject.time + '</time>';
+		}
+		let trk = '<trk>' + metadata + '<trkseg>' + trackPoint.reduce(joiner) + '</trkseg></trk>';
+
+		function joiner(complete, element) {
+			return complete + element;
+		}
+
+		XML += trk;
 	}
 	XML += '</gpx>';
 
 	return XML;
 }
 
+function prepareKML() {
+	let List = sessionStorage.getItem('subIdList');
+	if (!List) {	// If no tracks found
+		// If a shared trip report, see who the current user is.
+		let current;
+		let peopleDiv = document.getElementsByClassName('ReportFilter-change')[0];
+		if (peopleDiv) {
+			current = peopleDiv.getElementsByClassName('current')[0].textContent;
+		}
+
+		setTimeout(noTracksFound, 50, current);
+		return false;
+	}
+
+	subIdList = List.split(',');
+
+	sessionStorage.removeItem('subIdList');
+
+	let XML = createKMLheader();
+
+	let subId;
+	for (let i = 0; i < subIdList.length; i++) {
+		subId = subIdList[i];
+
+		let checklistObject = JSON.parse(sessionStorage.getItem(subId));
+		sessionStorage.removeItem(subId);
+
+		XML += formatSubId(subId,checklistObject);
+	}
+	XML += '</Folder></Document></kml>';
+	return XML;
+}
+
+function formatSubId(subId, checklistObject) {
+	let splitPos = checklistObject.title.indexOf(' - ');
+	let title = checklistObject.title.slice(splitPos + 3);
+
+	let XML = '<Folder>\n<name>' + subId + '</name>\n<description><![CDATA[<a href=' + checklistObject.canonical + '>checklist</a> ' + title + ']]></description>\n';
+
+	XML += '<Folder>\n<name>Points</name>\n';
+
+	let ar = checklistObject.points.split(',');	// Convert the coordinate string into an array
+	coordinates = '<coordinates>';
+
+	for (let i = 0, p=0; i < ar.length; i+=2, p++) {
+		XML += '<Placemark><name>' + subId + '-' + p + '</name><styleUrl>#track-none</styleUrl><Point><coordinates>' + ar[i] + ',' + ar[i + 1] + ',0</coordinates> </Point></Placemark>\n';
+		coordinates += ar[i] + ',' + ar[i + 1] + ',0 ';
+	}
+	coordinates += '</coordinates>';
+
+	XML += '</Folder>\n<Placemark><name>Path</name><styleUrl>#lineStyle</styleUrl><LineString><tessellate>1</tessellate>\n' + coordinates + '\n';
+	XML += '</LineString>\n</Placemark>\n</Folder>\n';
+
+	return XML;	
+}
+
+function createKMLheader() { 
+	let XML = '<?xml version="1.0" encoding="UTF-8"?>\n';
+	
+	XML += '<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">\n';
+
+	XML += '<Document>\n\t<name>eBird</name>\n\t<open>1</open>\n';
+	
+	XML += '\t\t<Style id="lineStyle"><LineStyle><color>99ffac59</color><width>6</width></LineStyle></Style>\n';
+	XML += '\t\t<StyleMap id="track-none"><Pair><key>normal</key><styleUrl>#track-none_n</styleUrl></Pair><Pair><key>highlight</key><styleUrl>#track-none_h</styleUrl></Pair></StyleMap>\n';
+
+	XML += '\t\t<Style id="track-none_h"><IconStyle><scale>1.2</scale><heading>0</heading><Icon><href>https://earth.google.com/images/kml-icons/track-directional/track-none.png</href></Icon></IconStyle></Style>\n';
+
+	XML += '\t\t<Style id="track-none_n"><IconStyle><scale>0.5</scale><heading>0</heading><Icon><href>https://earth.google.com/images/kml-icons/track-directional/track-none.png</href></Icon></IconStyle><LabelStyle><scale>0</scale></LabelStyle></Style>\n';
+
+	XML += '\\t<Folder>\n\t\t\t<name>eBird Tracks</name>\n';
+
+
+	return XML;
+}
+
 function performDownload(XML) {
 	// Set up a dummy anchor for downloading the xml file, then click it
+	let options = getOptions();
+
 	const link = document.createElement('a')
 	link.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(XML));
-	link.setAttribute('download', document.title + '.gpx');
+	let filename = document.title;
+	if (options.trackFormat == 'GPX') {
+		filename += '.gpx';
+	}
+	else if (options.trackFormat == 'KML') { filename += '.kml' };
+
 	link.style.display = 'none'
+	link.setAttribute('download', filename);
 	document.body.appendChild(link)
 	link.click()
 	document.body.removeChild(link);
@@ -196,5 +271,20 @@ function noTracksFound(current) {
 		let dataFor = document.getElementsByClassName('ReportFilter-current-label')[0].textContent;
 
 		alert('There are no tracks for ' + current + '. \nWhere it says "' + dataFor.toLocaleUpperCase() + ' ' + current + '", change it by selecting your own name from the list.');
+	}
+}
+ 
+function handleDownload() {
+	let options = getOptions();
+	let XML = false;
+	if (options.trackFormat == 'GPX') {
+		XML = prepareGPX();
+	} else if (options.trackFormat == 'KML') {
+		XML = prepareKML();		
+	} else {
+		alert('Unknown format!');
+	}
+	if (XML) {
+		performDownload(XML)
 	}
 }

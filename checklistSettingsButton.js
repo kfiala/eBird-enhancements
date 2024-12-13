@@ -74,7 +74,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		formatButton.addEventListener('mouseleave', () => { formatButton.style.backgroundColor = BackgroundColor });
 		formatButton.addEventListener('mouseleave', () => { formatButton.style.color = choicesColor });
 		formatButton.addEventListener('click', () => { checklistSettingToggle('downloadBar') });
-		formatButton.textContent = 'Download Format';
+		formatButton.textContent = 'Track download format';
 
 		const checkedBallotBox = '\u2611';
 		const uncheckedBallotBox = '\u2610';
@@ -86,11 +86,21 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		gpxChoice.style.marginLeft = '2em';
 		gpxChoice.textContent = gpxBox + ' GPX';
 		gpxChoice.setAttribute('id', 'GPXbtn');
+		gpxChoice.addEventListener('mouseenter', () => { gpxChoice.style.backgroundColor = itemBackgroundColor });
+		gpxChoice.addEventListener('mouseenter', () => { gpxChoice.style.color = 'white' });
+		gpxChoice.addEventListener('mouseleave', () => { gpxChoice.style.backgroundColor = BackgroundColor });
+		gpxChoice.addEventListener('mouseleave', () => { gpxChoice.style.color = choicesColor });
+		gpxChoice.style.cursor = 'pointer';
 
 		kmlChoice = document.createElement('span');
 		kmlChoice.style.marginLeft = '2em';
 		kmlChoice.textContent = kmlBox + ' KML';
-		kmlChoice.setAttribute('id','KMLbtn');
+		kmlChoice.setAttribute('id', 'KMLbtn');
+		kmlChoice.addEventListener('mouseenter', () => { kmlChoice.style.backgroundColor = itemBackgroundColor });
+		kmlChoice.addEventListener('mouseenter', () => { kmlChoice.style.color = 'white' });
+		kmlChoice.addEventListener('mouseleave', () => { kmlChoice.style.backgroundColor = BackgroundColor });
+		kmlChoice.addEventListener('mouseleave', () => { kmlChoice.style.color = choicesColor });
+		kmlChoice.style.cursor = 'pointer';
 
 		gpxChoice.addEventListener('click', () => {
 			setOption('trackFormat', 'GPX');
@@ -138,7 +148,7 @@ function checklistSettingToggle(item) {
 	// handles click on option menu item
 	let options = getOptions();
 	if (item == 'TrackDownload') {
-		let downloadSpan = document.getElementById('downloadGPX');
+		let downloadSpan = document.getElementById('downloadAction');
 
 		if (options.trackDownload == 'off') {
 			options.trackDownload = 'on';

@@ -9,7 +9,8 @@ if (document.getElementById("checklist-tools"))
 	var shareSpan = document.createElement('span');
 	shareSpan.setAttribute('id', 'KShareBtn');
 	shareDiv.appendChild(shareSpan);
-	shareSpan.style='margin:0 0 0 7px;padding:0 8px;border:thin green solid;background-color:#F3F7FB;font-size:.75rem;float:right;';
+	shareSpan.style = 'margin:0 0 0 7px;padding:0 8px;border:thin green solid;background-color:#F3F7FB;font-size:.75rem;float:right;';
+	shareSpan.style.cursor = 'pointer';
 
 	var msgSpan=document.createElement('span');
 	msgSpan.appendChild(document.createTextNode("URL copied to clipboard"));
