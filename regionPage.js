@@ -1,4 +1,4 @@
-if (window.location.pathname.includes('region/') | window.location.href.includes('hotspot/')) {
+if (window.location.pathname.includes('region/') || window.location.href.includes('hotspot/')) {
 	let pathArray = window.location.pathname.slice(1).split('/');
 	// Don't redirect if the first two path elements are the same as in referrer
 	// In Firefox but not Chrome, document.referrer is empty string on a redirect; check for length of 0
