@@ -1,3 +1,10 @@
+if (window.location.pathname.includes('/checklist/') && window.location.href.endsWith('/media')) {
+	const isFirefox = typeof InstallTrigger !== 'undefined';
+	if (isFirefox) { // Because Firefox tends to lose track of localStorage
+		localStorage.setItem('checklistMediaDialog', 'true');
+	}
+}
+
 function getOptions() {
 	localStorage.length;
 	let options = JSON.parse(localStorage.getItem("extensionOptions"));
