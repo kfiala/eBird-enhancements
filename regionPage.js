@@ -14,23 +14,23 @@ if (window.location.pathname.includes('region/') || window.location.href.include
 
 function switchTo(target) {	// Redirect to the desired view
 	let URLarray = window.location.pathname.slice(1).split('/');
-	let URL = window.location.origin + '/' + URLarray[0] + '/' + URLarray[1];	// Keep only the first two elements of the path
+	let url = window.location.origin + '/' + URLarray[0] + '/' + URLarray[1];	// Keep only the first two elements of the path
 
 	switch (target) {
 		case 'Month':
 			break;
 		case 'Year':
-			URL += '?yr=cur';
+			url += '?yr=cur';
 			break;
 		case 'Bird List':
-			URL += '/bird-list';
+			url += '/bird-list';
 			break;
 		case 'Recent Checklists':
-			URL += '/recent-checklists';
+			url += '/recent-checklists';
 			break;
 		default:
 	}
-	window.location.href = URL;
+	window.location.href = url;
 }
 
 function selectListener() {

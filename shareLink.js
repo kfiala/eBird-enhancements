@@ -1,7 +1,6 @@
 if (document.getElementById("checklist-tools"))
 {
-	var URL =  window.location.href.replace(/\/$/,'');
-	var subID = URL.split("/").pop();
+	var subID = window.location.href.replace(/\/$/, '').split("/").pop();
 
 	var shareDiv=document.createElement('div');
 	shareDiv.style='width:100%';

@@ -150,12 +150,12 @@ function reverseList() {
 }
 
 function listAllChecklists() {	// Put list of all checklist URLs in clipboard
-	let URL = [];
+	let url = [];
 	const checklists = document.getElementsByClassName('ReportList-checklists')[0].getElementsByClassName('ChecklistItem');	// DIV in each checklist LI in the UL
 	for (let i = 0; i < checklists.length; i++) {
-		URL.push('https://ebird.org' + checklists[i].getElementsByTagName('a')[0].getAttribute('href'));
+		url.push('https://ebird.org' + checklists[i].getElementsByTagName('a')[0].getAttribute('href'));
 	}
-	navigator.clipboard.writeText(URL.join('\n'));
+	navigator.clipboard.writeText(url.join('\n'));
 }
 
 
