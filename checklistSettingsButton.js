@@ -29,7 +29,6 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 				// click handler to close options window if click occurs outside it
 				window.addEventListener('click', hidePullDown, true);
 			}
-			buttonTextContent('ShareBId', options.sharingURL);
 			buttonTextContent('TrackBId', options.trackDownload);
 		});
 
@@ -51,13 +50,6 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 
 		let itemBackgroundColor = '#113245';
 		let BackgroundColor = '#F0F6FA';
-		let shareButton = document.createElement('li');
-		shareButton.setAttribute('id', 'ShareBId');
-		shareButton.addEventListener('mouseenter', () => { shareButton.style.backgroundColor = itemBackgroundColor });
-		shareButton.addEventListener('mouseenter', () => { shareButton.style.color = 'white' });
-		shareButton.addEventListener('mouseleave', () => { shareButton.style.backgroundColor = BackgroundColor });
-		shareButton.addEventListener('mouseleave', () => { shareButton.style.color = choicesColor });
-		shareButton.addEventListener('click', () => { checklistSettingToggle('SharingURL') });
 
 		let trackButton = document.createElement('li');
 		trackButton.setAttribute('id', 'TrackBId');
@@ -130,14 +122,14 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		helpButton.addEventListener('mouseleave', () => { helpButton.style.color = choicesColor });
 		helpButton.addEventListener('click', () => { location.href = 'https://www.faintlake.com/eBird/extension/Enhancements/' });
 
-		choices.append(shareButton, trackButton, formatButton, downloadSettingBar, helpButton);
+		choices.append(trackButton, formatButton, downloadSettingBar, helpButton);
 
 		optionDiv.append(choices);
 	}
 }
 
 function hidePullDown(ev) {
-	if (!['ShareBId', 'TrackBId', 'FormatBId', 'GPXbtn', 'KMLbtn', 'addon'].includes(ev.target.id)) {
+	if (!['TrackBId', 'FormatBId', 'GPXbtn', 'KMLbtn', 'addon'].includes(ev.target.id)) {
 		document.getElementById('Eoptions').style.display = 'none';
 		document.getElementById('downloadBar').style.display = 'none';
 		window.removeEventListener('click', hidePullDown, true);
@@ -158,18 +150,6 @@ function checklistSettingToggle(item) {
 			if (downloadSpan) downloadSpan.style.display = 'none';
 		}
 		buttonTextContent('TrackBId', options.trackDownload);
-
-	} else if (item == 'SharingURL') {
-		let shareSpan = document.getElementById('KShareBtn');
-
-		if (options.sharingURL == 'off') {
-			options.sharingURL = 'on';
-			shareSpan.style.display = 'block';
-		} else {
-			options.sharingURL = 'off';
-			shareSpan.style.display = 'none';
-		}
-		buttonTextContent('ShareBId', options.sharingURL);
 
 	} else if (item == 'downloadBar') {
 		let optionSpan = document.getElementById('downloadBar');
@@ -192,12 +172,6 @@ function buttonTextContent(button, onoff) {
 				optionButton.textContent = 'Disable Download track';
 			else
 				optionButton.textContent = 'Enable Download track';
-			break;
-		case 'ShareBId':
-			if (onoff == 'on')
-				optionButton.textContent = 'Disable Sharing URL';
-			else
-				optionButton.textContent = 'Enable Sharing URL';
 			break;
 		default:
 	}

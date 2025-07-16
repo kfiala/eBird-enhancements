@@ -8,7 +8,7 @@
         "https://ebird.org/*",
         "https://media.ebird.org/*"
       ],
-      "js": ["autofocus.js","commonFunctions.js","downloadTrack.js","tripreport.js","mychecklists.js","shareLink.js","checklistSettingsButton.js","regionPage.js"]
+      "js": ["autofocus.js","commonFunctions.js","downloadTrack.js","tripreport.js","mychecklists.js","checklistSettingsButton.js","regionPage.js"]
     }
   ],
   "browser_specific_settings": {
