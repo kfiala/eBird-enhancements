@@ -27,6 +27,10 @@ function getOptions() {
 		options.trackFormat = 'KML';
 		changed = true;
 	}
+	if ('sortTrip' in options == false) {
+		options.sortTrip = 'descend';
+		changed = true;
+	}
 	if (changed) {
 		localStorage.setItem('extensionOptions', JSON.stringify(options));
 		options = JSON.parse(localStorage.getItem("extensionOptions"));
