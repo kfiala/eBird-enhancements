@@ -1,7 +1,7 @@
 // Set up the 'Add-ons' button and exit
 if (window.location.href.includes('tripreport/')) {
 	console.log('Entering tripreport.js');
-	var currentSort;
+	var listExists = false;
 	addAddOnsButton();
 }
 // That's all for now!
@@ -11,38 +11,50 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 		console.log('Waiting in checklistListWait,', action);
 		setTimeout(checklistListWait, 100, action);
 	} else {
-		console.log('checklistListWait wait complete for', action,'-- doing restoreButton');
-		restoreButton();
-//		console.log('restoreButton complete');
-		let options = getOptions();
-
-		if (currentSort === undefined) {
-			console.log('currentSort was undefined');
-			currentSort = 'descend';
-
-			if (options.sortTrip == 'descend') {
-				console.log('Initial call, returning');
-				return;
-			}
-		}
-
-		console.log('Continuing with', action);
-
+		closeMenu();
 
 		switch (action) {
 			case 'sort':
-				if (options.sortTrip != currentSort) {
-					console.log('Reversed sort from', currentSort, 'to', options.sortTrip);
-					currentSort = options.sortTrip;
-					reverseList();
-				} else {
-					console.log('Current sort is', currentSort, 'option is', options.sortTrip,'Already sorted; no action');
-				}
-				break;
 			case 'flip':
-				currentSort = (currentSort == 'descend') ? 'ascend' : 'descend';
-				console.log('Flipped sort to', currentSort);
-				reverseList();
+				let options = getOptions();
+			
+				let prior = sessionStorage.getItem('currentSort');
+				console.log('At entry to checklistListWait, option setting is', options.sortTrip, '-- previous was', prior, ' -- listExists is', listExists);
+				if (!listExists) {
+					if (prior == null) { // this is the first time through -- use option setting						
+						if (options.sortTrip == 'ascend') {
+							console.log('First time through. Sort reversed to ascending according to option setting');
+							reverseList();
+						} else { console.log('First time through. Already descending by default, no action'); }
+						sessionStorage.setItem('currentSort', options.sortTrip);
+
+					} else { // this is a reload -- use prior setting
+						if (prior == 'ascend') {
+							console.log('Reset/reload. Sort reversed to ascending according to prior setting');
+							reverseList();
+						} else { console.log('Reset/reload. Already descending by default, no action'); }
+						sessionStorage.setItem('currentSort', prior);
+					}
+				} else { // This is a regular call continuing a session
+					if (action == 'sort') { // sort option was set; sort by new setting
+						if (prior == options.sortTrip) {
+							console.log('Option stays the same, no action');
+						} else {
+							sessionStorage.setItem('currentSort', options.sortTrip);
+							reverseList();
+							console.log('Changed sort to', options.sortTrip);
+						}
+					} else { // reverse sort from prior setting
+						let newSort = prior == 'descend' ? 'ascend' : 'descend';
+						sessionStorage.setItem('currentSort', newSort);
+						reverseList();
+						console.log('Flipped sort from', prior, 'to', newSort);
+					}
+				}
+				listExists = true;
+
+				console.log('currentSort set to', sessionStorage.getItem('currentSort'));
+
 				break;
 			case 'clipboard': listAllChecklists();
 				break;
@@ -146,15 +158,17 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 	sortOptionBar.append(descendChoice);
 	mouseColors(descendChoice);
 
+	listExists = (document.getElementsByClassName('ReportList-checklists')[0] != undefined);
+
 	ascendChoice.addEventListener('click', () => {
 		ascendChoice.textContent = checkedBallotBox + ' ascending';
 		descendChoice.textContent = uncheckedBallotBox + ' descending';
 		setOption('sortTrip', 'ascend');
 		beOnChecklists();
-		console.log('ascendChoice');
-		if (document.getElementsByClassName('ReportList-checklists')[0]) {
+		console.log('ascend chosen');
+		if (listExists) {
 			checklistListWait('sort');
-		} else console.log('Let flip handle it');
+		} else console.log('List not there yet, let flip handle it');
 	});
 
 	descendChoice.addEventListener('click', () => {
@@ -162,10 +176,10 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 		ascendChoice.textContent = uncheckedBallotBox + ' ascending';
 		setOption('sortTrip', 'descend');
 		beOnChecklists();
-		console.log('descendChoice');
-		if (document.getElementsByClassName('ReportList-checklists')[0]) {
+		console.log('descend chosen');
+		if (listExists) {
 			checklistListWait('sort');
-		} else console.log('Let flip handle it');
+		} else console.log('List not there yet, let flip handle it');
 	});
 
 	// click handler on checklists button for toggling sort
@@ -174,13 +188,28 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 		console.log('Click handler');
 		checklistListWait('flip');
 	});
+/* -------------------------------------------------------------------------------------------------- */
+	console.log('Previous sort was', sessionStorage.getItem('currentSort'));
+		
 
-	// Check for reload on checklist panel
+
+
 	const searchParams = new URLSearchParams(window.location.search);
-	if (searchParams.get('view') == 'checklists' && options.sortTrip == 'ascend') {
-		console.log('Reinitializing ascending sort on reload');
-		checklistListWait('sort');
+	console.log('View is', searchParams.get('view'));
+	if (searchParams.get('view') == 'checklists') {
+		console.log('View is checklists');
+	
+		console.log(sessionStorage.getItem('currentSort'));
+		if (sessionStorage.getItem('currentSort') == 'ascend') {
+			console.log('Reinitializing ascending sort on reload');
+			checklistListWait('sort');
+		}
+
+
 	}
+
+	
+	console.log('Finished with sort setup');
 
 	// List item 2: Copy checklist URLs to clipboard
 
@@ -213,7 +242,7 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 	li.textContent = 'Export to spreadsheet';
 	choices.appendChild(li);
 	mouseColors(li);
-	li.addEventListener('click', () => { csvExport(); restoreButton(); });
+	li.addEventListener('click', () => { csvExport(); closeMenu(); });
 }
 
 
@@ -232,18 +261,13 @@ function mouseColors(item) {
 	item.addEventListener('mouseleave', () => { item.style.color = itemColor });
 }
 
-function restoreButton() {
-	//	document.getElementById('KLFdiv').remove();	// Remove the button after click--this is the only way I can find to close the dropdown
-//	document.getElementById('menuDiv').remove();	
+function closeMenu() {
 	document.getElementById('menuDiv').blur();
-	
-//	addMenuDiv();	// Put a fresh button back
 }
 
 function beOnChecklists() {
 	let rc;
 	if (!document.getElementsByClassName('ReportList-checklists')[0]) {
-		console.log('There is no list of checklists');
 		const searchParams = new URLSearchParams(window.location.search);
 		if (searchParams.get('view') == 'checklists') {
 			alert('This trip report has no checklists in it!');
@@ -252,8 +276,7 @@ function beOnChecklists() {
 			document.getElementById('stat-checklists').click();
 			rc = true;
 		}
-	} else
-		console.log('There is a list of checklists');
+	}
 	return rc;
 }
 
