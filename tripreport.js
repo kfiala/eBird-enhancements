@@ -1,6 +1,7 @@
 // Set up the 'Add-ons' button and exit
 if (window.location.href.includes('tripreport/')) {
 	var listExists = false;
+	var startingView = '';
 	addAddOnsButton();
 }
 // That's all for now!
@@ -17,6 +18,10 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 				let options = getOptions();
 			
 				let prior = sessionStorage.getItem('currentSort');
+				console.log('At entry to checklistListWait, option setting is', options.sortTrip, '-- previous was', prior, ' -- listExists is', listExists);
+				let list = (document.getElementsByClassName('ReportList-checklists')[0]);
+				let first = list.getElementsByClassName('Heading-main')[0];
+				console.log('First date',first);
 				if (!listExists) {
 					if (prior == null) { // this is the first time through -- use option setting						
 						if (options.sortTrip == 'ascend') {
@@ -31,18 +36,30 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 						sessionStorage.setItem('currentSort', prior);
 					}
 				} else { // This is a regular call continuing a session
+					console.log('Starting view was', startingView, 'for action', action);
 					if (action == 'sort') {
 						if (prior != options.sortTrip) { // Option changed; use new setting
 							sessionStorage.setItem('currentSort', options.sortTrip);
 							reverseList(); 
 						} // else Option stays the same, no action
 					} else { // reverse sort from prior setting
-						let newSort = prior == 'descend' ? 'ascend' : 'descend';
-						sessionStorage.setItem('currentSort', newSort);
-						reverseList(); // Flipped sort from prior to newSort
+						if (startingView == 'checklists') {
+							let newSort = prior == 'descend' ? 'ascend' : 'descend';
+							sessionStorage.setItem('currentSort', newSort);
+							reverseList();
+							console.log('Starting view was "',startingView, '", so sort was reversed');
+						} else {
+							if (prior == 'ascend') {
+								reverseList();
+								console.log('Starting view was', startingView, 'and prior was ascend, so sort was reversed to ascend');
+							} else {
+								console.log('Starting view was', startingView, 'and prior was descend, so sort was not reversed');
+							}
+						}
 					}
 				}
 				listExists = true;
+				startingView = 'checklists'; 
 				break;
 			case 'clipboard': listAllChecklists();
 				break;
@@ -167,9 +184,19 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 		} // else List not there yet, let flip handle it
 	});
 
+	// click handler on window 
+	window.addEventListener('click', () => {
+		const searchParams = new URLSearchParams(window.location.search);
+		startingView = searchParams.get('view');
+		if (startingView === null) {
+			startingView = 'species';
+		}
+		console.log('Window click handler -- startingView', startingView);
+	});
+
+
 	// click handler on checklists button for toggling sort
-	let link = document.getElementById('stat-checklists');
-	link.addEventListener('click', () => {
+	document.getElementById('stat-checklists').addEventListener('click', () => {
 		checklistListWait('flip');
 	});
 
