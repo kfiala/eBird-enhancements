@@ -18,10 +18,6 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 				let options = getOptions();
 			
 				let prior = sessionStorage.getItem('currentSort');
-				console.log('At entry to checklistListWait, option setting is', options.sortTrip, '-- previous was', prior, ' -- listExists is', listExists);
-				let list = (document.getElementsByClassName('ReportList-checklists')[0]);
-				let first = list.getElementsByClassName('Heading-main')[0];
-				console.log('First date',first);
 				if (!listExists) {
 					if (prior == null) { // this is the first time through -- use option setting						
 						if (options.sortTrip == 'ascend') {
@@ -36,7 +32,6 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 						sessionStorage.setItem('currentSort', prior);
 					}
 				} else { // This is a regular call continuing a session
-					console.log('Starting view was', startingView, 'for action', action);
 					if (action == 'sort') {
 						if (prior != options.sortTrip) { // Option changed; use new setting
 							sessionStorage.setItem('currentSort', options.sortTrip);
@@ -47,13 +42,9 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 							let newSort = prior == 'descend' ? 'ascend' : 'descend';
 							sessionStorage.setItem('currentSort', newSort);
 							reverseList();
-							console.log('Starting view was "',startingView, '", so sort was reversed');
 						} else {
 							if (prior == 'ascend') {
 								reverseList();
-								console.log('Starting view was', startingView, 'and prior was ascend, so sort was reversed to ascend');
-							} else {
-								console.log('Starting view was', startingView, 'and prior was descend, so sort was not reversed');
 							}
 						}
 					}
@@ -191,7 +182,6 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 		if (startingView === null) {
 			startingView = 'species';
 		}
-		console.log('Window click handler -- startingView', startingView);
 	});
 
 
