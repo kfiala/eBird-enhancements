@@ -5,44 +5,41 @@ if (window.location.pathname.includes('/checklist/') && window.location.href.end
 	}
 }
 
-function getOptions() {
-	localStorage.length;
-	let options = JSON.parse(localStorage.getItem("extensionOptions"));
-	let changed = false;
-	if (options == null)
-		options = {};
-	if ('regionView' in options == false) {
-		options.regionView = 'Month';
-		changed = true;
+var options = {};
+getOptions();
+
+async function getOptions() {
+	try {
+		const response = await (chrome.storage.local.get(['extensionOptions']));
+		options = response['extensionOptions'];
+
+		let changed = false;
+		if ('regionView' in options == false) {
+			options.regionView = 'Month';
+			changed = true;
+		}
+		if ('trackDownload' in options == false) {
+			options.trackDownload = 'on';
+			changed = true;
+		}
+		if ('trackFormat' in options == false) {
+			options.trackFormat = 'KML';
+			changed = true;
+		}
+		if ('sortTrip' in options == false) {
+			options.sortTrip = 'descend';
+			changed = true;
+		}
+		if (changed) {
+			saveOptions();
+		}
+	} catch (error) {
+		console.error('Error retrieving value:', error);
 	}
-	if ('sharingURL' in options == false) {
-		options.sharingURL = 'on';
-		changed = true;
-	}
-	if ('trackDownload' in options == false) {
-		options.trackDownload = 'on';
-		changed = true;
-	}
-	if ('trackFormat' in options == false) {
-		options.trackFormat = 'KML';
-		changed = true;
-	}
-	if ('sortTrip' in options == false) {
-		options.sortTrip = 'descend';
-		changed = true;
-	}
-	if (changed) {
-		localStorage.setItem('extensionOptions', JSON.stringify(options));
-		options = JSON.parse(localStorage.getItem("extensionOptions"));
-	}
-	return options;
 }
 
-function setOption(optionName, optionValue) {
-	let options = getOptions();
-	options[optionName] = optionValue;
-	localStorage.setItem('extensionOptions', JSON.stringify(options));
-	options = JSON.parse(localStorage.getItem("extensionOptions"));
+function saveOptions() {
+	chrome.storage.local.set({ 'extensionOptions': options });
 }
 
 async function getOneTrack(checklists, i, promises) {
@@ -258,7 +255,6 @@ function createKMLheader() {
 
 function performDownload(XML) {
 	// Set up a dummy anchor for downloading the xml file, then click it
-	let options = getOptions();
 
 	const link = document.createElement('a')
 	link.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(XML));
@@ -286,7 +282,6 @@ function noTracksFound(current) {
 }
  
 function handleDownload() {
-	let options = getOptions();
 	let XML = false;
 	if (options.trackFormat == 'GPX') {
 		XML = prepareGPX();

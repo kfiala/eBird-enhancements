@@ -15,8 +15,14 @@ if (document.getElementById("tracks-map-mini")) {	// If the small map display pr
 			ev.preventDefault();
 			getOnlyTrack(location.pathname);
 		});
+		downloadButtonDisplay(downloadSpan);
+	}
+}
 
-		let options = getOptions();
+function downloadButtonDisplay(downloadSpan) {
+	if (!options.trackDownload) {
+		setTimeout(downloadButtonDisplay, 100, downloadSpan);
+	} else {
 		if (options.trackDownload == 'off')
 			downloadSpan.style.display = 'none';
 		else

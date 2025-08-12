@@ -15,8 +15,6 @@ function checklistListWait(action) {	// Wait until the list of checklists is dis
 		switch (action) {
 			case 'sort':
 			case 'flip':
-				let options = getOptions();
-			
 				let prior = sessionStorage.getItem('currentSort');
 				if (!listExists) {
 					if (prior == null) { // this is the first time through -- use option setting						
@@ -130,16 +128,8 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 	sortOptionBar.setAttribute('id', 'sortOptionBar');
 	li.append(sortOptionBar);
 
-	const checkedBallotBox = '\u2611';
-	const uncheckedBallotBox = '\u2610';
-	let options = getOptions();
-
-	ascendBox = options.sortTrip == 'ascend' ? checkedBallotBox : uncheckedBallotBox;
-	descendBox = options.sortTrip == 'descend' ? checkedBallotBox : uncheckedBallotBox;
-
 	ascendChoice = document.createElement('span');
 	ascendChoice.style.marginLeft = '2em';
-	ascendChoice.textContent = ascendBox + ' ascending';
 	ascendChoice.setAttribute('id', 'ascendbtn');
 	ascendChoice.style.cursor = 'pointer';
 	sortOptionBar.append(ascendChoice);
@@ -147,18 +137,20 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 
 	descendChoice = document.createElement('span');
 	descendChoice.style.marginLeft = '2em';
-	descendChoice.textContent = descendBox + ' descending';
 	descendChoice.setAttribute('id', 'descendbtn');
 	descendChoice.style.cursor = 'pointer';
 	sortOptionBar.append(descendChoice);
 	mouseColors(descendChoice);
 
+	sortChoices(); 
+
 	listExists = (document.getElementsByClassName('ReportList-checklists')[0] != undefined);
 
 	ascendChoice.addEventListener('click', () => {
-		ascendChoice.textContent = checkedBallotBox + ' ascending';
-		descendChoice.textContent = uncheckedBallotBox + ' descending';
-		setOption('sortTrip', 'ascend');
+		ascendChoice.textContent = checkedBallotBox() + ' ascending';
+		descendChoice.textContent = uncheckedBallotBox() + ' descending';
+		options.sortTrip = 'ascend';
+		saveOptions();
 		beOnChecklists();
 		if (listExists) {
 			checklistListWait('sort');
@@ -166,9 +158,10 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 	});
 
 	descendChoice.addEventListener('click', () => {
-		descendChoice.textContent = checkedBallotBox + ' descending';
-		ascendChoice.textContent = uncheckedBallotBox + ' ascending';
-		setOption('sortTrip', 'descend');
+		descendChoice.textContent = checkedBallotBox() + ' descending';
+		ascendChoice.textContent = uncheckedBallotBox() + ' ascending';
+		options.sortTrip = 'descend';
+		saveOptions();
 		beOnChecklists();
 		if (listExists) {
 			checklistListWait('sort');
@@ -232,6 +225,19 @@ function addAddOnsButton() {	// Add our 'Add-ons' button
 	li.addEventListener('click', () => { csvExport(); closeMenu(); });
 }
 
+function checkedBallotBox() { return '\u2611' }
+function uncheckedBallotBox() { return '\u2610' }
+
+function sortChoices() {
+	if (!options.sortTrip) {
+		setTimeout(sortChoices, 100);
+	} else {
+		let ascendBox = options.sortTrip == 'ascend' ? checkedBallotBox() : uncheckedBallotBox();
+		let descendBox = options.sortTrip == 'descend' ? checkedBallotBox() : uncheckedBallotBox();
+		document.getElementById('ascendbtn').textContent = ascendBox + ' ascending';
+		document.getElementById('descendbtn').textContent = descendBox + ' descending';
+	}
+}
 
 function mouseColors(item) {
 	const selectedBackgroundColor = '#113245';

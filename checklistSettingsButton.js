@@ -19,7 +19,6 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		button.textContent = 'Add-on settings';
 		h3.parentNode.parentNode.append(button);
 		button.addEventListener('click', () => {
-			let options = getOptions();
 
 			if (document.getElementById('Eoptions').style.display == 'block') {
 				document.getElementById('Eoptions').style.display = 'none';
@@ -67,16 +66,9 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		formatButton.addEventListener('mouseleave', () => { formatButton.style.color = choicesColor });
 		formatButton.addEventListener('click', () => { checklistSettingToggle('downloadBar') });
 		formatButton.textContent = 'Track download format';
-
-		const checkedBallotBox = '\u2611';
-		const uncheckedBallotBox = '\u2610';
-		let options = getOptions();
-		gpxBox = options.trackFormat == 'GPX' ? checkedBallotBox : uncheckedBallotBox;
-		kmlBox = options.trackFormat == 'KML' ? checkedBallotBox : uncheckedBallotBox;
-
+		
 		gpxChoice = document.createElement('span');
 		gpxChoice.style.marginLeft = '2em';
-		gpxChoice.textContent = gpxBox + ' GPX';
 		gpxChoice.setAttribute('id', 'GPXbtn');
 		gpxChoice.addEventListener('mouseenter', () => { gpxChoice.style.backgroundColor = itemBackgroundColor });
 		gpxChoice.addEventListener('mouseenter', () => { gpxChoice.style.color = 'white' });
@@ -86,7 +78,6 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 
 		kmlChoice = document.createElement('span');
 		kmlChoice.style.marginLeft = '2em';
-		kmlChoice.textContent = kmlBox + ' KML';
 		kmlChoice.setAttribute('id', 'KMLbtn');
 		kmlChoice.addEventListener('mouseenter', () => { kmlChoice.style.backgroundColor = itemBackgroundColor });
 		kmlChoice.addEventListener('mouseenter', () => { kmlChoice.style.color = 'white' });
@@ -94,17 +85,21 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		kmlChoice.addEventListener('mouseleave', () => { kmlChoice.style.color = choicesColor });
 		kmlChoice.style.cursor = 'pointer';
 
+		trackChoices();
+		
 		gpxChoice.addEventListener('click', () => {
-			setOption('trackFormat', 'GPX');
-			gpxChoice.textContent = checkedBallotBox + ' GPX';
-			kmlChoice.textContent = uncheckedBallotBox + ' KML';
+			options.trackFormat = 'GPX';
+			saveOptions();
+			gpxChoice.textContent = checkedBallotBox() + ' GPX';
+			kmlChoice.textContent = uncheckedBallotBox() + ' KML';
 		});
 
 
 		kmlChoice.addEventListener('click', () => {
-			setOption('trackFormat', 'KML');
-			kmlChoice.textContent = checkedBallotBox + ' KML';
-			gpxChoice.textContent = uncheckedBallotBox + ' GPX';
+			options.trackFormat = 'KML';
+			saveOptions();
+			kmlChoice.textContent = checkedBallotBox() + ' KML';
+			gpxChoice.textContent = uncheckedBallotBox() + ' GPX';
 		});
 
 		let downloadSettingBar = document.createElement('span');
@@ -128,6 +123,23 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 	}
 }
 
+function checkedBallotBox() { return '\u2611'; }
+function uncheckedBallotBox() { return '\u2610'; }
+
+function trackChoices() {
+	if (!options.trackFormat) {
+		setTimeout(trackChoices, 100);
+	} else {
+		let choice = document.getElementById('GPXbtn');
+		let gpxBox = options.trackFormat == 'GPX' ? checkedBallotBox() : uncheckedBallotBox();
+		choice.textContent = gpxBox + ' GPX';
+
+		choice = document.getElementById('KMLbtn');
+		let kmlBox = options.trackFormat == 'KML' ? checkedBallotBox() : uncheckedBallotBox();
+		choice.textContent = kmlBox + ' KML';
+	}
+}
+
 function hidePullDown(ev) {
 	if (!['TrackBId', 'FormatBId', 'GPXbtn', 'KMLbtn', 'addon'].includes(ev.target.id)) {
 		document.getElementById('Eoptions').style.display = 'none';
@@ -138,17 +150,19 @@ function hidePullDown(ev) {
 
 function checklistSettingToggle(item) {
 	// handles click on option menu item
-	let options = getOptions();
 	if (item == 'TrackDownload') {
 		let downloadSpan = document.getElementById('downloadAction');
 
 		if (options.trackDownload == 'off') {
 			options.trackDownload = 'on';
+			buttonTextContent('TrackBId', options.trackDownload);
 			if (downloadSpan) downloadSpan.style.display = 'block';
 		} else {
 			options.trackDownload = 'off';
+			buttonTextContent('TrackBId', options.trackDownload);	
 			if (downloadSpan) downloadSpan.style.display = 'none';
 		}
+		saveOptions();
 		buttonTextContent('TrackBId', options.trackDownload);
 
 	} else if (item == 'downloadBar') {
@@ -160,7 +174,6 @@ function checklistSettingToggle(item) {
 			optionSpan.style.display = 'block';
 	}
 
-	localStorage.setItem('extensionOptions', JSON.stringify(options));
 }
 
 function buttonTextContent(button, onoff) {

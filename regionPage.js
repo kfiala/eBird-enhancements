@@ -3,13 +3,19 @@ if (window.location.pathname.includes('region/') || window.location.href.include
 	// Don't redirect if the first two path elements are the same as in referrer
 	// In Firefox but not Chrome, document.referrer is empty string on a redirect; check for length of 0
 	if (document.referrer.length && !document.referrer.includes(window.location.origin + '/' + pathArray[0] + '/' + pathArray[1])) {
-		let options = getOptions();
+		reDirect();
+	}
+	addRegionButton();
+}
+
+function reDirect() {
+	if (!options.regionView) {
+		setTimeout(reDirect, 100);
+	} else {
 		if (options.regionView != 'Month') {	// Redirect unless they are asking for the default
 			switchTo(options.regionView);
 		}
 	}
-
-	addRegionButton();
 }
 
 function switchTo(target) {	// Redirect to the desired view
@@ -36,9 +42,8 @@ function switchTo(target) {	// Redirect to the desired view
 function selectListener() {
 	let select = document.getElementById('selectView');
 	let selected = select.options[select.selectedIndex].value;
-	let options = getOptions();
 	options.regionView = selected;
-	setOption('regionView', selected);
+	saveOptions();
 
 	switchTo(selected);
 }
@@ -94,8 +99,6 @@ function addRegionButton() {
 	select.setAttribute('id', 'selectView');
 	select.addEventListener('change', selectListener);
 	select.append(optionNull);
-
-	let options = getOptions();
 
 	let option1 = document.createElement('option');
 	option1.setAttribute('value', 'Month');
