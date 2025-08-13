@@ -12,7 +12,9 @@ async function getOptions() {
 	try {
 		const response = await (chrome.storage.local.get(['extensionOptions']));
 		options = response['extensionOptions'];
-
+		if (typeof options == 'undefined') {
+			options = {};
+		}
 		let changed = false;
 		if ('regionView' in options == false) {
 			options.regionView = 'Month';
@@ -233,7 +235,7 @@ function formatSubId(subId, checklistObject) {
 	return XML;	
 }
 
-function createKMLheader() { 
+function createKMLheader() {
 	let XML = '<?xml version="1.0" encoding="UTF-8"?>\n';
 	
 	XML += '<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">\n';
@@ -280,7 +282,7 @@ function noTracksFound(current) {
 		alert('There are no tracks for ' + current + '. \nWhere it says "' + dataFor.toLocaleUpperCase() + ' ' + current + '", change it by selecting your own name from the list.');
 	}
 }
- 
+
 function handleDownload() {
 	let XML = false;
 	if (options.trackFormat == 'GPX') {
