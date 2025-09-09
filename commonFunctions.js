@@ -32,6 +32,10 @@ async function getOptions() {
 			options.sortTrip = 'descend';
 			changed = true;
 		}
+		if ('contactsHeight' in options == false) {
+			options.contactsHeight = 8;
+			changed = true;
+		}
 		if (changed) {
 			saveOptions();
 		}

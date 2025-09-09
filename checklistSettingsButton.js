@@ -66,7 +66,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		formatButton.addEventListener('mouseleave', () => { formatButton.style.color = choicesColor });
 		formatButton.addEventListener('click', () => { checklistSettingToggle('downloadBar') });
 		formatButton.textContent = 'Track download format';
-		
+
 		gpxChoice = document.createElement('span');
 		gpxChoice.style.marginLeft = '2em';
 		gpxChoice.setAttribute('id', 'GPXbtn');
@@ -86,7 +86,7 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		kmlChoice.style.cursor = 'pointer';
 
 		trackChoices();
-		
+
 		gpxChoice.addEventListener('click', () => {
 			options.trackFormat = 'GPX';
 			saveOptions();
@@ -120,6 +120,47 @@ if (document.getElementById("checklist-tools")) {	// It's a checklist that we ow
 		choices.append(trackButton, formatButton, downloadSettingBar, helpButton);
 
 		optionDiv.append(choices);
+	}
+
+	if (document.getElementById('share-contacts-fieldset')) {
+		setTimeout(	setupContactsDiv, 1000);
+	}
+}
+
+// Provide for adjusting height of contacts div
+
+function setupContactsDiv() {
+	document.getElementById('share-contacts').style.maxHeight = options.contactsHeight + 'rem';
+
+	let spanOne = document.getElementById('share-contacts-fieldset').querySelector('span');
+
+	let incrButton = document.createElement('button');
+	incrButton.style.paddingLeft = '1.6rem';
+	incrButton.textContent = 'more';
+	spanOne.append(incrButton);
+	incrButton.addEventListener('click', (event) => { contactsHeight(event, 'incr') });
+
+	let decrButton = document.createElement('button');
+	decrButton.style.paddingLeft = '.5rem';
+	decrButton.textContent = 'fewer';
+	spanOne.append(decrButton);
+	decrButton.addEventListener('click', (event) => { contactsHeight(event, 'decr') });
+
+	function contactsHeight(event, direction)	{
+		event.preventDefault();
+		const contactsDiv = document.getElementById('share-contacts');
+		let maxheight = parseInt(contactsDiv.style.maxHeight);
+		if (direction == 'incr') {
+			const hasVerticalScrollbar = contactsDiv.scrollHeight > contactsDiv.clientHeight;
+			if (hasVerticalScrollbar) {
+					maxheight += 4;
+			}
+		} else if (maxheight > 8) {
+			maxheight -= 4;
+		}
+		contactsDiv.style.maxHeight = maxheight + 'rem';
+		options.contactsHeight = maxheight;
+		saveOptions();
 	}
 }
 
@@ -159,7 +200,7 @@ function checklistSettingToggle(item) {
 			if (downloadSpan) downloadSpan.style.display = 'block';
 		} else {
 			options.trackDownload = 'off';
-			buttonTextContent('TrackBId', options.trackDownload);	
+			buttonTextContent('TrackBId', options.trackDownload);
 			if (downloadSpan) downloadSpan.style.display = 'none';
 		}
 		saveOptions();
