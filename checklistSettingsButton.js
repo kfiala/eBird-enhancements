@@ -145,18 +145,29 @@ function setupContactsDiv() {
 	decrButton.textContent = 'fewer';
 	spanOne.append(decrButton);
 	decrButton.addEventListener('click', (event) => { contactsHeight(event, 'decr') });
-
-	function contactsHeight(event, direction)	{
+	if (options.contactsHeight <= 8) {	// Hide "fewer" button if height is at minimum
+		decrButton.style.display = 'none';
+	}
+	
+	function contactsHeight(event, direction) {
 		event.preventDefault();
 		const contactsDiv = document.getElementById('share-contacts');
 		let maxheight = parseInt(contactsDiv.style.maxHeight);
 		if (direction == 'incr') {
-			const hasVerticalScrollbar = contactsDiv.scrollHeight > contactsDiv.clientHeight;
+			let hasVerticalScrollbar = contactsDiv.scrollHeight > contactsDiv.clientHeight;
 			if (hasVerticalScrollbar) {
-					maxheight += 4;
+				maxheight += 4;
+				hasVerticalScrollbar = contactsDiv.scrollHeight > contactsDiv.clientHeight;
+				// show "more" only when there is a scrollbar after height is added
+				incrButton.style.display = hasVerticalScrollbar ? 'inline' : 'none';
+				decrButton.style.display = 'inline'; // always show "fewer" when height is added.
+			} else { // hide "more" button if no scrollbar at all
+				incrButton.style.display = 'none';
 			}
 		} else if (maxheight > 8) {
 			maxheight -= 4;
+			incrButton.style.display = 'inline'; // always show "more" when height is decremented.
+			decrButton.style.display = maxheight > 8 ? 'inline' : 'none'; // Show "fewer" only when height > 8
 		}
 		contactsDiv.style.maxHeight = maxheight + 'rem';
 		options.contactsHeight = maxheight;

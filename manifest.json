@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "eBird assistant",
-  "version": "3.1.10",
+  "version": "3.1.10.1",
   "content_scripts": [
     {
       "matches": [
