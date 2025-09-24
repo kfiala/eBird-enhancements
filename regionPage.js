@@ -9,11 +9,17 @@ if (window.location.pathname.includes('region/') || window.location.href.include
 	let currentPath = pathArray[0] + '/' + pathArray[1];
 
 	if (document.referrer.length && currentPath !== referringPath) {
-		// We are coming from a different page, so redirect if needed
-		reDirect();
+		reDirect();	// We are coming from a different page, so it is first entry, redirect if needed
 	} else {
-		// Not redirecting because coming from same page or referrer empty
-		addRegionButton();
+		finishRedirect(); // This should be the second entry, after the redirect. No further redirects.
+	}
+}
+
+function finishRedirect() {
+	if (!options.regionView) {
+		setTimeout(finishRedirect, 100);
+	} else {
+		addRegionButton();	// Completion of second entry, just add our button.
 	}
 }
 
@@ -23,6 +29,8 @@ function reDirect() {
 	} else {
 		if (options.regionView != 'Month') {	// Redirect unless they are asking for the default
 			switchTo(options.regionView);
+		} else {
+			addRegionButton();	// Default so no redirect, just add our button.
 		}
 	}
 }
