@@ -25,6 +25,11 @@ function finishRedirect() {
 
 function reDirect() {
 	if (!options.regionView) {
+		console.log('Waiting for options to load');
+		setTimeout(reDirect, 100);
+	}
+	if (!document.getElementById('ebirding-this-month')) {
+		console.log('Waiting for page to load');
 		setTimeout(reDirect, 100);
 	} else {
 		if (options.regionView != 'Month') {	// Redirect unless they are asking for the default
@@ -38,6 +43,7 @@ function reDirect() {
 function switchTo(target) {	// Redirect to the desired view
 	let URLarray = window.location.pathname.slice(1).split('/');
 	let url = window.location.origin + '/' + URLarray[0] + '/' + URLarray[1];	// Keep only the first two elements of the path
+	console.log('origin', window.location.origin, 'URLarray', URLarray, 'url', url);
 
 	switch (target) {
 		case 'Month':
