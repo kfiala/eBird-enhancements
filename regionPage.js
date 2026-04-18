@@ -45,6 +45,9 @@ function switchTo(target) {	// Redirect to the desired view
 		case 'Year':
 			url += '?yr=cur';
 			break;
+		case 'About':
+			url += '/about';
+			break;
 		case 'IconicMonth':
 			if (window.location.href.includes('hotspot/'))
 				url += '/iconic-birds?yr=curM'; 
@@ -155,6 +158,7 @@ function addRegionButton() {
 
 		setupOption('Month', 'Overview--This Month');
 		setupOption('Year', 'Overview--This Year');
+		setupOption('About', 'About');
 		setupOption('IconicMonth', 'Iconic Birds--This Month');
 		setupOption('IconicYear', 'Iconic Birds--All Months');
 		setupOption('Bird List', 'Bird List');
