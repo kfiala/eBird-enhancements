@@ -1,5 +1,6 @@
 var options = {};
 getOptions();
+setChecklistMediaDialog();
 
 async function getOptions() {
 	try {
@@ -34,6 +35,23 @@ async function getOptions() {
 		}
 	} catch (error) {
 		console.error('Error retrieving value:', error);
+	}
+}
+
+async function setChecklistMediaDialog() {
+	// Firefox sometimes loses track of localStorage if you clear history, so keep a backup.
+	const checklistMediaDialog = localStorage.getItem('checklistMediaDialog');
+	// if checklistMediaDialog is saved as expected, just back it up.
+	if (checklistMediaDialog) {
+		chrome.storage.local.set({ 'checklistMediaDialog': checklistMediaDialog });
+	} else {
+		// checklistMediaDialog was not present as expected, so fetch backup value.
+		const response = await (chrome.storage.local.get(['checklistMediaDialog']));
+		backupChecklistMediaDialog = response['checklistMediaDialog'];
+		if (typeof backupChecklistMediaDialog !== 'undefined') {
+			// checklistMediaDialog was backed up, so restore it to localStorage.
+			localStorage.setItem('checklistMediaDialog', backupChecklistMediaDialog);
+		} 
 	}
 }
 
