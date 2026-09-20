@@ -2,6 +2,27 @@ var options = {};
 getOptions();
 setChecklistMediaDialog();
 
+if (window.location.href.includes('/map/')) { // Remove the "map-tip" after 5 seconds
+	function noMapTip(turnoff = false) {
+		let mapTip = document.getElementById('map-tip');
+		if (!mapTip) {	// Spin until map-tip appears for the first time
+			setTimeout(noMapTip, 1000);
+		} else {
+			if (turnoff) {
+				mapTip.style.display = 'none';
+				setTimeout(noMapTip, 1000, false);	// Spin until map-tip reappears
+			} else {
+				if (mapTip.style.display != 'none') {
+					setTimeout(noMapTip, 5000, true);	// Wait 5 seconds, then turn it off
+				} else {
+					setTimeout(noMapTip, 1000, false);	// Spin until map-tip reappears
+				};
+			}
+		}
+	}
+	noMapTip();
+}
+
 async function getOptions() {
 	try {
 		const response = await (chrome.storage.local.get(['extensionOptions']));
